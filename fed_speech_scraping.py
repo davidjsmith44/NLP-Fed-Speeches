@@ -10,7 +10,7 @@ a dataframe with the following columns
     link (to site for speech text)
     text (speech stored as a string)
 
-The Federal Reserve website contains a searchable of their speeches at:
+The Federal Reserve website contains a searchable site with their speeches at:
     https://www.federalreserve.gov/newsevents/speeches.htm
 
 The speeches themselves are separated by year and stored on their own web pages with links 
