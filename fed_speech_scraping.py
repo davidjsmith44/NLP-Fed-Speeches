@@ -19,7 +19,7 @@ to the path to the text file. For example:
     "/newsevents/speech/2018-speeches.htm"
     "/newsevents/speech/2006speech.htm"
 
-
+The results are saved to a pickle file with the named 'all_fed_speeches'
 '''
 
 def create_url_list(start_year, end_year, prefix, suffix):
@@ -42,7 +42,7 @@ def create_url_list(start_year, end_year, prefix, suffix):
 
     NOTES: 
         1. The prefix does not include the host. The host is 'www.federalreserve.gov'
-        2. The prefix has changed over time. Before 2011, the suffix was 'speech.htm'
+        2. The suffix has changed over time. Before 2011, the suffix was 'speech.htm'
             but this was changes to '-speeches.htm'
         3. This function only works from 2006 onward. Before that time period the Fed
             stored their speeches in a slightly different format
@@ -154,7 +154,7 @@ def create_speech_df(host, annual_htm_list):
     NOTES:
         1. There are two items from 2006 to present that are on the Federal Reserve
             website that are not speeches but reports. These items are removed in this
-            function by idenfitying dataframe rows where the speaker is blank
+            function by idenfitying dataframe rows where the link contains '/pubs/feds'
 
     '''
     all_dates = []
@@ -172,11 +172,13 @@ def create_speech_df(host, annual_htm_list):
     dict1 = {'date': all_dates, 'speaker':all_speakers,
             'title': all_titles, 'link':all_links}
     df = pd.DataFrame.from_dict(dict1)
-    #Cleaning up some of the dateframe elemenst to remove brackets
+    
+    #Cleaning up some of the dateframe elements to remove brackets
     df['date']=df['date'].str[0]
     df['date'] = pd.to_datetime(df['date'])
     df['speaker']=df['speaker'].str[0]
     df['title']=df['title'].str[0]
+    
     # creating empty column for documents
     doc = np.zeros_like(df['date'])
     df['text'] = doc
@@ -223,9 +225,6 @@ def get_one_doc(host, this_url):
         string  containing the text of the speech
 
     '''
-    #conn = HTTPSConnection(host = host)
-    #conn.request(method='GET', url = this_url)
-    #response = conn.getresponse()
     
     temp_url = 'https://' + host + this_url
     response = requests.get(temp_url)
