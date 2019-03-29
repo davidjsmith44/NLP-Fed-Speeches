@@ -37,9 +37,6 @@ Capstone Schedule
 
     FRIDAY March 29th
     FIRST test that the pickle file worked!
-    1. Create file that loads up the financial data from quandl for a specific date range
-        -include FX rates from the majors
-    2. Create initial plots in Jupyter notebook using Seaborn for presentation
     3. Transform the interest rate data into forward rates
         -provide a brief explaination of why
         -create charts that show what this looks like
@@ -47,8 +44,6 @@ Capstone Schedule
         -interest rates
         -Fed speeches
         -FX rates (and any other variables)
-    5. Extract the time series of principal components over time
-    6. Create graphs of these things
     7. Convert these into dataframe
     8. Train, test, cv split
     9. Begin doing partial autocorrelations on the data
@@ -65,5 +60,10 @@ Capstone Schedule
 
 
 Completed Tasks
+    1. Create file that loads up the financial data from quandl for a specific date range
+        -include FX rates from the majors
+    2. Create initial plots in Jupyter notebook using Seaborn for presentation
 
+    5. Extract the time series of principal components over time
+    6. Create graphs of these things
 

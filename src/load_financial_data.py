@@ -53,3 +53,57 @@ comp_vects = test.components_
 
 
 shocks = test.fit_transform(X)
+
+
+def plot_3_pcs(comps, shocks):
+    ''' TO DO ON THIS PLOT
+        1. make the X axis for charts on right the date
+        2. optional title with start and end dates
+    '''
+    fig, axs = plt.subplots(3,2, figsize = (12,12))
+
+    axs[0,0].plot(comps[0, :], color='k')
+    axs[0,0].grid()
+    axs[0,0].set_facecolor("whitesmoke")
+    axs[0,0].set_title("First Principal Component Vector")
+    axs[0,1].plot(shocks[:,0], color='r')
+    axs[0,1].grid()
+    axs[0,1].set_facecolor("whitesmoke")
+    axs[0,1].set_title("Shocks due to 1st Component")
+
+    axs[1,0].plot(comps[1, :], color='k')
+    axs[1,0].grid()
+    axs[1,0].set_facecolor("whitesmoke")
+    axs[1,0].set_title("Second Principal Component Vector")
+    axs[1,1].plot(shocks[:,1], color='b')
+    axs[1,1].grid()
+    axs[1,1].set_facecolor("whitesmoke")
+    axs[1,1].set_title("Shocks due to 2nd Component")
+
+
+    axs[2,0].plot(comps[2, :], color='k')
+    axs[2,0].grid()
+    axs[2,0].set_facecolor("whitesmoke")
+    axs[2,0].set_title("Third Principal Component Vector")
+    axs[2,1].plot(shocks[:,2], color='g')
+    axs[2,1].grid()
+    axs[2,1].set_facecolor("whitesmoke")
+    axs[2,1].set_title("Shocks due to 3rd Component")
+
+    fig.suptitle("Principal Components of the US Treasury Yield Curve", fontsize = 30, color = 'k')
+    fig.show()
+
+''' To Do list
+1. make the PCA analysis more of a workflow
+    -select dates to use
+        start_date
+        end_date
+    - fit the PCA model
+    - recover all of the relevant information
+    - recover the shocks
+    - perform autocorrelations on the data
+
+2. HOW DO I BUILD THE FINAL MODEL???
+
+
+'''
