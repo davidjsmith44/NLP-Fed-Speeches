@@ -1,21 +1,27 @@
 ''' Initial NLP Pipeline '''
 
 
-def create_speech_list(df, date, numb_speeches):
+def create_speech_dfs(df, date, numb_speeches):
     '''
-    For a given date, the most recent speeches are returned in a dataframe
+    For a given date, the most recent speeches numb_speeches and the next date speeches
+    are returned as dataframes
 
     INPUTS:
         df - the dataframe of all fed speeches
         date - the date needed to include no speeches before
         num_speeches - the number of most recent speeches to include
-    OUTPUT:
-        dataframe - this is a subset of the original dataframe with same columns
+
+    OUTPUTS:
+        hist_df - this is a subset of the original dataframe with same columns
+        new_df - a subset of the original dataframe for the new speeches
     '''
-    filtered_df = df[df['date']<= date]
-    if len(filtered_df)> numb_speeches:
-        filtered_df = filtered_df.iloc[-1:-numb_speeches-1:-1]
-    return filtered_df
+    hist_df = df[df['date']< date]
+    if len(hist_df)> numb_speeches:
+        hist_df = hist_df.iloc[-1:-numb_speeches-1:-1]
+
+    new_df = df[df['date']==date]
+
+    return hist_df, new_df
 
 
 def implement_ftidf_model(df):
@@ -23,20 +29,6 @@ def implement_ftidf_model(df):
     This takes the smaller version of the speeches and retuns the tf_idf calculations
     NOTE: NEED TO ADD HYPERPARAMETER DICTIONARY TO THIS
     '''
-    import string
-    import numpy as np
-    import pandas as pd
-
-    from nltk.corpus import stopwords
-    from nltk.tokenize import RegexpTokenizer
-    from nltk.stem.porter import PorterStemmer
-
-    from nltk.tokenize import word_tokenize
-    from nltk.stem.porter import PorterStemmer
-    from nltk.stem.snowball import SnowballStemmer
-    from nltk.stem.wordnet import WordNetLemmatizer
-
-    from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 
     doc_list = list(df['text'])
     tfidvect =TfidfVectorizer(lowercase=True,
@@ -52,7 +44,76 @@ def implement_ftidf_model(df):
     return tfidvect, tfidf_vectorized
 
 
+def transform_new_speech(new_df, model):
+    '''
+    takes the model fit on historical speeches and fits the new text to this model
+    returns new_tokens which can go into the similarity calculation
+    '''
+    new_text = new_df['text']
+    new_tokens = tfidvect.transform(new_text)
+    return new_tokens
 
+def calculate_similarity(new_tokens, tfid_vectorized):
+    '''
+    This function takes the new tokens and the model for the history of n_speeches and
+    calculates the cosine similarity
+    two numbers are returned
+        cost_last  - the cosine similarity with the new speeches and the last speeches
+        cos_avg_n  - the average cosine similariy over the last n speeches
+    '''
+
+    cosine_sims = linear_kernel(new_tokens, tfid_vectorizer)
+    # n
+    # NOTE: Need to handle the case where there are multiple speeches on the current date
+
+    cos_last = cosine_sims[0]
+    cos_avg_n = np.avg(cosine_sims)
+
+    return cos_last, cos_avg_n
+
+
+def loop_through_dataframe(df, n_speeches):
+    '''
+    Attempting to start with the most recent speech and work backwards historically creating
+    a list of cosine similarities
+
+    Within the loops to the speeches
+        -calculate the date
+        -Pass date and dataframe to create_speech_dfs
+            -returns new_df and hist_df
+        -Fit the hist_df to a model
+        -put the new_df into the model
+        -calculate the cosines
+        -put the cosines into the original dataframe
+
+    '''
+    for i in range(len(df)- n_speeches:
+        this_date = df['date']
+
+
+# fit this dataframe to the last vectorization
+new_tokens = tfidvect.transform(new_text)
+cosine_sims = linear_kernel(new_tokens, tfidf_vectorized)
+cosine_sims.shape
+
+
+
+# Mother of all import statements
+import string
+import numpy as np
+import pandas as pd
+
+from nltk.corpus import stopwords
+from nltk.tokenize import RegexpTokenizer
+from nltk.stem.porter import PorterStemmer
+
+from nltk.tokenize import word_tokenize
+from nltk.stem.porter import PorterStemmer
+from nltk.stem.snowball import SnowballStemmer
+from nltk.stem.wordnet import WordNetLemmatizer
+
+from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
+from sklearn.metrics.pairwise import linear_kernel
 
 
 # Importing all of the Fed Speeches
@@ -67,13 +128,36 @@ recent_model = implement_ftidf_model(df)
 
 
 # working on the cosine similarities !!!
-from sklearn.metrics.pairwise import linear_kernel
 # create the new dataframe of the next speech = called df_new
 new_text = df_new['text']
 # fit this dataframe to the last vectorization
 new_tokens = tfidvect.transform(new_text)
 cosine_sims = linear_kernel(new_tokens, tfidf_vectorized)
 cosine_sims.shape
+
+
+
+
+''' List of variables to include '''
+n_speeches = 10
+
+cos_avg_n = np.zeros_like(df['date'])
+cos_last = np.zeros_like(df['date'])
+df['cos_last'] = cos_last
+df['cos_avg_n'] = cos_avg_n
+
+
+# create list of dates where there was at least one speech and sort
+unique_dates = df['date'].unique()
+unique_dates = np.sort(unique_dates)
+
+# create array to hold cosine similarities and words based on n_speeches
+# the original dataframe 'df' is sorted with the first speech being the most current
+# pull the last n_speeches
+first_date = df['date'].iloc[-n_speeches]
+unique_date = unique_dates >= first_date
+ud = np.datetime_as_string(unique_dates, 'D')
+# NOTE: Need to fix if there are two speeches on the same date - adjust the cosine similarity
 
 
 

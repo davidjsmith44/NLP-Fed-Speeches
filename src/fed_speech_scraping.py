@@ -188,6 +188,10 @@ def create_speech_df(host, annual_htm_list):
     # now we need to sort the dataframe so that the most recent period is first
     df.sort_values(by=['date'], ascending = False, inplace = True)
     df.reset_index(drop=True, inplace=True)
+
+    # convert the dates to datetime objects for later
+    #df['date']=pd.to_datetime(df['date'])
+
     return df
 
 def retrieve_docs(host, df):
