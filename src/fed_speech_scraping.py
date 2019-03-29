@@ -174,7 +174,7 @@ def create_speech_df(host, annual_htm_list):
     df = pd.DataFrame.from_dict(dict1)
     #Cleaning up some of the dateframe elemenst to remove brackets
     df['date']=df['date'].str[0]
-    df['date'] = pd.to_datetime(df['date'])
+    #df['date'] = pd.to_datetime(df['date'])
     df['speaker']=df['speaker'].str[0]
     df['title']=df['title'].str[0]
     # creating empty column for documents
@@ -191,6 +191,10 @@ def create_speech_df(host, annual_htm_list):
 
     # convert the dates to datetime objects for later
     #df['date']=pd.to_datetime(df['date'])
+
+    # sorting the dataframe and resetting the index
+    #df.sort_values(by=['date'], ascending=False, inplace=True)
+    #df.reset_index(drop=True, inplace=True)
 
     return df
 
