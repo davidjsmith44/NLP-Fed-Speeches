@@ -1,32 +1,27 @@
-'''
-This file downloads data from quandl.com and places
-it into a datafile
+''' LOAD_FINANCIAL_DATA.PY
 
-DATA INCLUDED
-    US Treasury Yields
+This file
+    1. downloads interest rate and FX data from quandl.com
+    2. Cleans the interest rate data and places it into a dataframe X
+        X columns = ['3 MO', '6 MO', etc]
+    3. The intererst rate data is saved in a pickle file called 'interest_rate_data.p' in the data directory
+    4. Downloads FX data for EUR, GBP, JPY and places that data into a dataframe called FX
+        FX columns = ['EUR', 'GBP', 'JPY']
+        NOTE: No preprocessing has been done on this file yet!
+    5. The FX data is saved in a pickle file called 'FX_data.p'
+
 '''
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import quandl
-
+import pickle
+import os
 
 df_treas = quandl.get("USTREASURY/YIELD", authtoken="zBYbsY7fujcHokgXQdsY",
     start_date = "2006-01-01", end_date="2019-03-28")
 
-# daily EUR_USD
-
-df_EUR_USD = quandl.get("FED/RXI_US_N_B_EU", authtoken="zBYbsY7fujcHokgXQdsY",
-    start_date = "2006-01-01", end_date="2019-03-28")
-# daily GBP / USD
-df_GBP = quandl.get("FED/RXI_US_N_B_UK", authtoken="zBYbsY7fujcHokgXQdsY",
-    start_date = "2006-01-01", end_date="2019-03-28")
-# daily USD/JPY
-df_JPY = quandl.get("FED/RXI_N_B_JA", authtoken="zBYbsY7fujcHokgXQdsY",
-    start_date = "2006-01-01", end_date="2019-03-28")
-
-''' NOW I NEED TO MESS WITH THE DATES '''
 
 # The 3 month Treasury has three dates at the end of 2008
 # where the rate is zero. Pandas is treating this as Nan
@@ -38,6 +33,37 @@ X = df_treas.copy()
 
 X = X.drop(['1 MO', '2 MO', '20 YR', '30 YR'], axis=1)
 
+# saving the df to a pickle file
+pickle_out = open('../data/interest_rate_data', 'wb')
+pickle.dump(X, pickle_out)
+pickle_out.close()
+
+
+''' Saving this for later if we need it '''
+# daily EUR_USD
+df_EUR = quandl.get("FED/RXI_US_N_B_EU", authtoken="zBYbsY7fujcHokgXQdsY",
+    start_date = "2006-01-01", end_date="2019-03-28")
+
+# daily GBP / USD
+df_GBP = quandl.get("FED/RXI_US_N_B_UK", authtoken="zBYbsY7fujcHokgXQdsY",
+    start_date = "2006-01-01", end_date="2019-03-28")
+
+# daily USD/JPY
+df_JPY = quandl.get("FED/RXI_N_B_JA", authtoken="zBYbsY7fujcHokgXQdsY",
+    start_date = "2006-01-01", end_date="2019-03-28")
+
+df_FX = df_EUR
+df_FX.rename(index=str, columns={"Value": "EUR"})
+df_FX['GBP'] = df_GBP['Value']
+df_FX['JPY'] = df_JPY['Value']
+
+pickle_out = open('../data/FX_data', 'wb')
+pickle.dump(df_FX, pickle_out)
+pickle_out.close()
+
+
+
+'''
 n_comp = 5
 test = PCA(n_components = n_comp, random_state=44)
 
@@ -93,6 +119,7 @@ def plot_3_pcs(comps, shocks):
     fig.suptitle("Principal Components of the US Treasury Yield Curve", fontsize = 30, color = 'k')
     fig.show()
 
+'''
 ''' To Do list
 1. make the PCA analysis more of a workflow
     -select dates to use

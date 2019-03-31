@@ -7,7 +7,6 @@ import quandl
 from sklearn.decomposition import PCA
 
 
-
 def plot_3_pcs(comps, shocks, filename=None):
     ''' TO DO ON THIS PLOT
         1. make the X axis for charts on right the date
@@ -49,14 +48,11 @@ def plot_3_pcs(comps, shocks, filename=None):
         plt.savefig(filename)
 
 
-
 def sample_from_data(X, start_date, end_date):
     start_date = '2010-01-01'
     end_date ='2016-01-01'
 
     return  X[ (X.index >= start_date) & (X.index < '2010-12-30')]
-
-
 
 
 def run_model_on_sample(X_samp, n_comp, random_state=44):
@@ -69,7 +65,6 @@ def run_model_on_sample(X_samp, n_comp, random_state=44):
 
     pca = PCA(n_components = n_comp, random_state = random_state)
     pca.fit(X_samp)
-
 
     # recovering the components (vectors)
     component_vectors = pca.components_
@@ -101,15 +96,12 @@ X_samp = sample_from_data(X, start_date, end_date)
 n_comp = 5
 #test = PCA(n_components = n_comp, random_state=44)
 
-
-
 #test.fit(X)
 #print("Explained variance: ", test.explained_variance_ratio_)
 
 #plt_x = np.arange(0, n_comp)
 #plt.bar(plt_x, test.explained_variance_ratio_)
 #plt.show()
-
 
 pca_dict = run_model_on_sample(X_samp, 5)
 f_name= '../principal_components.png'
