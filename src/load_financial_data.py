@@ -66,12 +66,42 @@ def transform_rate_date(X):
     ''' Take the dataframe X and returns transformed data in forward rates and continuously compounded interest rates '''
     time = np.array([.03, .5, 1.0, 2.0, 3.0, 5.0, 7.0, 10])
     # this is an iterative process, but it can be vectorized
-    
+    # First I need to calculate zero rates for 2-10 years
+    # then the bond prices associated with them
+    # then I can get to the forward rates
+
+    ''' I need to start with the 2 year. The coupon rates for the two year
+    yield will be discounted at the 6M and 1Y rate and I will need to
+    interpolate 1.5 year zero rate and calc the 2 year yeild
+
+    col_2yr
+    price = X[:,]
+
+    Then using these zeros, I will need to calculate the 3 yr
+    Then the 5, 7 and 10 year bonds
+
+    NEED TO REMEMBER THE LOG TRICK HERE
+
+
+    '''
+    zeros = np.zeros_like(X)
+    forwards = np.zeros_like(X)
+
+    zeros[:,0:3] = X[:,0:3]
+
+    p = 1000
+    cpn = p*X[:,3]* p
+
+    pv_2yr = cpn / X[:,1] + cpn / x[:,2]
+
+    first_pmt = p*
     bond_prices = 1/(yield)exp(T)
+
 
     zeros =
     forwards =
-
+    ''' THERE HAS TO BE A PACKAGE FOR THIS THAT I SHOULD USE '''
+    
 
 '''
 n_comp = 5

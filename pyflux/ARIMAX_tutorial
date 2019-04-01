@@ -1,0 +1,20 @@
+''' PyFlux ARIMAX totorial '''
+
+import numpy as np
+import pandas as pd
+import pyflux as pf
+from datetime import datetime
+import matplotlib.pyplot as plt
+%matplotlib inline
+
+data = pd.read_csv("https://vincentarelbundock.github.io/Rdatasets/csv/MASS/drivers.csv")
+data.index = data['time'];
+data.loc[(data['time']>=1983.05), 'seat_belt'] = 1;
+data.loc[(data['time']<1983.05), 'seat_belt'] = 0;
+data.loc[(data['time']>=1974.00), 'oil_crisis'] = 1;
+data.loc[(data['time']<1974.00), 'oil_crisis'] = 0;
+plt.figure(figsize=(15,5));
+plt.plot(data.index,data['drivers']);
+plt.ylabel('Driver Deaths');
+plt.title('Deaths of Car Drivers in Great Britain 1969-84');
+plt.plot();
