@@ -119,7 +119,7 @@ def cross_validate_models(model_list, X_train, X_cv):
 
         if item['model_type']== 'ARIMA':
             model_list[i]['forecast'] = create_cv_forecasts(X_train, X_cv, item['hyper_params'])
-        
+
     return model_list
 
 
@@ -199,4 +199,18 @@ model_inputs = {'model_type': 'ARIMA',
                 'foreacst': forecast}
 model_list.append(model_inputs)
 
+''' First ARIMAX model '''
+#NOTE: We need to store the formula for the ARIMA model in the hyper_params
+this_name = 'Normal ARIMAX(1,1,1)'
+hyper_params = {'ar': 1, 'ma':1, 'diff_ord':1, 'target': '10 YR',
+                'formula':'10 YR ~ 1 + cos_sim + crisis'}
+forecast = 0
+model_inputs = {'model_type': 'ARIMAX',
+                'name': this_name,
+                'target_class': 'rates',
+                'hyper_params': hyper_params,
+                'foreacst': forecast}
+model_list.append(model_inputs)
+
 model_list = cross_validate_models(model_list, X_train, X_cv)
+

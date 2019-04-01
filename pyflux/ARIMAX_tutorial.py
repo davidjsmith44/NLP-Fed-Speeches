@@ -5,7 +5,7 @@ import pandas as pd
 import pyflux as pf
 from datetime import datetime
 import matplotlib.pyplot as plt
-%matplotlib inline
+#%matplotlib inline
 
 ''' Tutorial uses monthly UK driver deaths '''
 data = pd.read_csv("https://vincentarelbundock.github.io/Rdatasets/csv/MASS/drivers.csv")
@@ -17,7 +17,7 @@ data.loc[(data['time']<1983.05), 'seat_belt'] = 0;
 data.loc[(data['time']>=1974.00), 'oil_crisis'] = 1;
 data.loc[(data['time']<1974.00), 'oil_crisis'] = 0;
 plt.figure(figsize=(15,5));
-plt.plot(data.index,data['drivers']);
+plt.plot(data.index,data['value']);
 plt.ylabel('Driver Deaths');
 plt.title('Deaths of Car Drivers in Great Britain 1969-84');
 plt.plot();
@@ -30,8 +30,8 @@ economic cycle we are in?
 '''
 
 # NOTE: They use 'patsy' notation for the model
-model = pf.ARIMAX(data=data, formula = 'drivers~1+seat_belt+oil_crisis',
-                ar=1, ma=1, family=pf.Normal())
+model = pf.ARIMAX(data=data, formula = 'value~1+seat_belt+oil_crisis',
+                ar=4, ma=4, family=pf.Normal())
 x = model.fit("MLE")
 x.summary()
 
@@ -41,11 +41,13 @@ model.plot_fit(figzier=(15,10))
 # NOTE: To forecast we need exogenous variavbles into the future.
 # Since the inteventions carry forward we can use a slice of the existing data frame
 # and use plot_predict
-model.plot_predict(h=10, oos_data = data.iloc[-12:], past_values =100, figsize(15,15))
+model.plot_predict(h=10, oos_data = data.iloc[-12:], past_values =100, figsize=(15,15))
 
+model.plot_predict_is(h=10, fit_once=False, fit_method = 'MLE')
 # Attribures:  latent_variables - this is where the information is stored
 #                                   about the model
 
+model.predict(h = 3, oos_data = data.iloc[-12:], intervals=False)
 '''
 METHODS
     adjust_prior() - allows for adjusting the prior distribution
@@ -83,4 +85,3 @@ Optional arguments include figsize - the dimensions of the figure to plot. Pleas
         plots samples from the posterior predictive density of the model
         This method only works if you fitted the model using Bayesian inference
 
-    
