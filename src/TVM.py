@@ -143,5 +143,5 @@ for i in range(0, len(t)): #calculate i-th spot rate
     value = ((1+y[i]) / (1-sum))**(1/t[i]) - 1
     s.append(value)
 
-
+tr
 
