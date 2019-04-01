@@ -216,6 +216,55 @@ def bootstrap_7yr(X, X_zeros):
         spots[i] = rate
     return spots
 
+def bootstrap_10yr(X, X_zeros):
+    spots = np.zeros(shape=(len(X), 1))
+    par = 100
+
+    for i in range(len(X)):
+        rate = 0
+        r6 = X['6 MO'].iloc[i]
+        r12 = X['1 YR'].iloc[i]
+        r18 = X_zeros['2 YR'].iloc[i]
+        r24 = X_zeros['2 YR'].iloc[i]
+        r30 = X_zeros['3 YR'].iloc[i]
+        r36 = X_zeros['3 YR'].iloc[i]
+        r42 = X_zeros['5 YR'].iloc[i]
+        r48 = X_zeros['5 YR'].iloc[i]
+        r54 = X_zeros['5 YR'].iloc[i]
+        r60 = X_zeros['5 YR'].iloc[i]
+        r66 = X_zeros['7 YR'].iloc[i]
+        r72 = X_zeros['7 YR'].iloc[i]
+        r78 = X_zeros['7 YR'].iloc[i]
+        r84 = X_zeros['7 YR'].iloc[i]
+
+        cpn = X['10 YR'].iloc[i] * par/2
+        while True:
+            rate += 0.00001
+            delta = 100 - (cpn/((1+(r6/2))**1)) \
+                    - (cpn/((1+(r12/2))**2)) \
+                    - (cpn/((1+(r18 / 2))**3)) \
+                    - (cpn/((1+(r24 / 2))**4)) \
+                    - (cpn/((1+(r30 / 2))**5)) \
+                    - (cpn/((1+(r36 / 2))**6)) \
+                    - (cpn/((1+(r42 / 2))**7)) \
+                    - (cpn/((1+(r48 / 2))**8)) \
+                    - (cpn/((1+(r54 / 2))**9)) \
+                    - (cpn/((1+(r60 / 2))**10)) \
+                    - (cpn/((1+(r66 / 2))**11)) \
+                    - (cpn/((1+(r72 / 2))**12)) \
+                    - (cpn/((1+(r78 / 2))**13)) \
+                    - (cpn/((1+(r84 / 2))**14)) \
+                    - (cpn/((1+(rate / 2))**15)) \
+                    - (cpn/((1+(rate / 2))**16)) \
+                    - (cpn/((1+(rate / 2))**17)) \
+                    - (cpn/((1+(rate / 2))**18)) \
+                    - (cpn/((1+(rate / 2))**19)) \
+                    - (cpn + par)/((1 + (rate / 2))**20)
+            if delta >= 0:
+                break
+        spots[i] = rate
+    return spots
+
 
 X_zeros = X[['3 MO', '6 MO', '1 YR']].copy()
 zeros_2yr = bootstrap_2yr(X)
@@ -230,5 +279,12 @@ X_zeros['5 YR'] = zeros_5yr
 zeros_7yr = bootstrap_7yr(X, X_zeros)
 X_zeros['7 YR'] = zeros_7yr
 
+zeros_10yr = bootstrap_10yr(X, X_zeros)
+X_zeros['10 YR'] = zeros_10yr
 
+
+# saving the df to a pickle file
+pickle_out = open('data/zero_rates', 'wb')
+pickle.dump(X_zeros, pickle_out)
+pickle_out.close()
 
