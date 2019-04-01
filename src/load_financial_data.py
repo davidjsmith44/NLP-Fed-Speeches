@@ -62,6 +62,16 @@ pickle.dump(df_FX, pickle_out)
 pickle_out.close()
 
 
+def transform_rate_date(X):
+    ''' Take the dataframe X and returns transformed data in forward rates and continuously compounded interest rates '''
+    time = np.array([.03, .5, 1.0, 2.0, 3.0, 5.0, 7.0, 10])
+    # this is an iterative process, but it can be vectorized
+    
+    bond_prices = 1/(yield)exp(T)
+
+    zeros =
+    forwards =
+
 
 '''
 n_comp = 5
