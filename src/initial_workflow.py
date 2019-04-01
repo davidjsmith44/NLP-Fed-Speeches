@@ -137,7 +137,10 @@ import os
 import pickle
 
 os.chdir('..')
-X = pickle.load(open("data/interest_rate_data", "rb" ) )
+X = pickle.load(open("data/interest_rate_data", "rb" ))
+X_fwds = pickle.load(open('data/forward_rates', 'rb'))
+X_zeros = pickle.load(open('data/zero_rates', 'rb'))
+
 #df_FX = pickle.load( open( "data/FX_data", "rb" ) )
 #df_FED = pickle.load( open( "data/all_fed_speeches", "rb" ) )
 
@@ -146,9 +149,18 @@ total_obs = len(X)
 train_int = int(round(total_obs*.7, 0))
 cv_int = int(round(total_obs*.85, 0))
 
+fwd_train = X_fwds[0:train_int]
+fwd_cv = X_fwds[train_int:cv_int]
+fwd_test = X_fwds[cv_int:]
+
+zero_train = X_zeros[0:train_int]
+zero_cv = X_zeros[train_int:cv_int]
+zero_test = X_zeros[cv_int:]
+
 X_train = X[0:train_int]
 X_cv = X[train_int:cv_int]
 X_test = X[cv_int:]
+
 
 dict_params = {'ar':1, 'ma': 1, "diff_ord": 1, 'target':'10 YR'}
 

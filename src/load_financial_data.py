@@ -33,6 +33,8 @@ X = df_treas.copy()
 
 X = X.drop(['1 MO', '2 MO', '20 YR', '30 YR'], axis=1)
 
+# transform to interest rates
+X = X/100
 # saving the df to a pickle file
 pickle_out = open('../data/interest_rate_data', 'wb')
 pickle.dump(X, pickle_out)
@@ -101,7 +103,7 @@ def transform_rate_date(X):
     zeros =
     forwards =
     ''' THERE HAS TO BE A PACKAGE FOR THIS THAT I SHOULD USE '''
-    
+
 
 '''
 n_comp = 5
