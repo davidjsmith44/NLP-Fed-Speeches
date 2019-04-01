@@ -81,52 +81,50 @@ def create_cv_forecasts(X_train, X_cv, dict_params):
                             target, family = pf.Normal())
     return forecasts
 
-def cross_validate_models(model_dict, X_train, X_cv):
+def cross_validate_models(model_list, X_train, X_cv):
     '''
     Building a overlaying function that handles the cross validation
 
-    Will take as an input a dictionary that includes the model type
+    Will take as an input model_list that includes the model type
     and all of the hyper parameters of the model
 
     INPUTS:
         X_train -   the dataframe containing the training dataset
         X_cv -      the dataframe containing the cross_val dataset
-        model_dicf  A dictionary containing the hyper parameters
+        model_list  A dictionary containing the hyper parameters
                      of the model
-            EX Arima
-            model = { 'ar': 4, 'ma':4, 'integ':1,
-                        'target':this_column,
-                        'family':pf.Normal()}
+
     OUTPUTS
+        The forecast of the model (one day interest rate forecast) will be stored
+        in the model_list['foreacst'] section
 
-    # We want a list of dictionaries
-    # Each dictionary will contain the following
-    'model': a text explaination of the model
-    'hyper_params': a dictionary of hyper parameters of the model
-        hyper_params = {'Model': model.model_name,
-                    'hyperparams': dict_params,
-                    'forecast': forecasts
-                    'target': '10 YR'}
-    'predictions' - a set of predictions of the model (errors)
-    'simulations' - a set of the simulations ??? (or is this in predictions)
-'''
+ 'model_type'    {'Gaussian', 'ARIMA', 'ARIMAX'}
+    'name'          name given to model for charting purposes
+    'target_class'  {'rates', 'forwards', 'cc_forwards'}
+    'hyper_parms'    A dictoinary containing the hyperparmeters of the model
+    'forecast'      A zero, initially that get populated with the daily forecasts over CV period
+
+    '''
     # setting up the initial arima model
-    model_list = []
+    for idx, item in enumerate(model_list):
+        # Making sure we use the correct interest rate transformation
 
-    this_name = 'Normal ARIMA(1,1,1)'
-    hyper_params= {'ar':1, 'ma': 1, "diff_ord": 1, 'target':'10 YR'}
-    forecast = 0
+        if item['target_class']=='rates':
+            print('This one uses rates')
 
-    model_inputs = {'model_type': 'ARIMA'
-                    'name': this_name,
-                    'target_class': 'rates'
-                    'hyper_params': hyper_params,
-                    'foreacst': forecasts}
+        elif item['target_class']=='forwards':
+            print('This model uses forwards')
+        elif item['target_class']=='cc_forwards':
+            print("This model uses continuously compounded forwards")
 
-    model_list.append(model_inputs)
+        if item['model_type']== 'ARIMA':
+            model_list[i]['forecast'] = create_cv_forecasts(X_train, X_cv, item['hyper_params'])
+        
+    return model_list
 
-    
-    forecasts = create_cv_forecasts(X_train, X_cv, dict_params)
+
+
+
 
 #Load up interest rate data
 import numpy as np
@@ -164,4 +162,41 @@ dict_results = {'Model': model.model_name,
 
 models = []
 
-# Store relevant information in the models list
+
+''' Setting up the hyperparameters
+The data for models is stored in a list called 'model_list'
+Each entru in the list contains a dictionary with the following keys
+    'model_type'    {'Gaussian', 'ARIMA', 'ARIMAX'}
+    'name'          name given to model for charting purposes
+    'target_class'  {'rates', 'forwards', 'cc_forwards'}
+    'hyper_parms'    A dictoinary containing the hyperparmeters of the model
+    'forecast'      A zero, initially that get populated with the daily forecasts over CV period
+
+    The 'hyper_params' dictionary will be different for every class in the model.
+
+    EXAMPLE for arima class
+        hyper_params= {'ar':1, 'ma': 1, "diff_ord": 1, 'target':'10 YR'}
+    '''
+#Store relevant information in the models list
+model_list = []
+
+this_name = 'Normal ARIMA(1,1,1)'
+hyper_params= {'ar':1, 'ma': 1, "diff_ord": 1, 'target':'10 YR'}
+forecast = 0
+model_inputs = {'model_type': 'ARIMA'
+                'name': this_name,
+                'target_class': 'rates'
+                'hyper_params': hyper_params,
+                'foreacst': forecasts}
+
+this_name = 'Normal ARIMA(2,1,2)'
+hyper_params= {'ar':2, 'ma': 2, "diff_ord": 1, 'target':'10 YR'}
+forecast = 0
+model_inputs = {'model_type': 'ARIMA',
+                'name': this_name,
+                'target_class': 'rates',
+                'hyper_params': hyper_params,
+                'foreacst': forecast}
+model_list.append(model_inputs)
+
+model_list = cross_validate_models(model_list, X_train, X_cv)
