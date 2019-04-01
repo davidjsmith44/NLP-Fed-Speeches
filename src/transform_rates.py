@@ -288,3 +288,72 @@ pickle_out = open('data/zero_rates', 'wb')
 pickle.dump(X_zeros, pickle_out)
 pickle_out.close()
 
+''' now working on forward rates
+START BY IGNORING THE 3M RATE
+ we will have annualized forward rates fro
+    6 mo
+    6-12 mo
+    1-2 yrs
+    2-3 yrs
+    3-5 yers
+    5-7 yrs
+    7-10 yrs
+Need to express these as annualized rates
+
+#then take logs
+'''
+z_pr_6m  = zero_coupon_bond_price(par = 100,
+                                    ytm = X_zeros['6 MO'],
+                                    time= 0.5)
+
+z_pr_1y  = zero_coupon_bond_price(par = 100,
+                                    ytm = X_zeros['1 YR'],
+                                    time= 1.0)
+
+z_pr_2y  = zero_coupon_bond_price(par = 100,
+                                    ytm = X_zeros['2 YR'],
+                                    time= 2.0)
+
+z_pr_3y  = zero_coupon_bond_price(par = 100,
+                                    ytm = X_zeros['3 YR'],
+                                    time= 3.0)
+
+z_pr_5y  = zero_coupon_bond_price(par = 100,
+                                    ytm = X_zeros['5 YR'],
+                                    time= 5.0)
+
+z_pr_7y  = zero_coupon_bond_price(par = 100,
+                                    ytm = X_zeros['7 YR'],
+                                    time= 7.0)
+
+z_pr_10y  = zero_coupon_bond_price(par = 100,
+                                    ytm = X_zeros['10 YR'],
+                                    time= 10.0)
+
+fwd_6_12 = z_pr_6m / z_pr_1y
+fwd_1_2= z_pr_1y/z_pr_2y
+fwd_2_3 =z_pr_2y/z_pr_3y
+fwd_3_5 =z_pr_3y/z_pr_5y
+fwd_5_7 =z_pr_5y/z_pr_7y
+fwd_7_10=z_pr_7y/z_pr_10y
+
+# nowwe need to account for periods that are two years and adjust by
+# taking the sqare root
+fwd_3_5 =np.sqrt(fwd_3_5)
+fwd_5_7 =np.sqrt(fwd_5_7)
+fwd_7_10=fwd_7_10**(1/3)
+
+# annualize the first ????
+X_fwds = X_zeros[['6 MO', '1 YR']].copy()
+X_fwds['2 YR'] = fwd_1_2 -1
+X_fwds['3 YR'] = fwd_2_3 -1
+X_fwds['5 YR'] = fwd_3_5 -1
+X_fwds['7 YR'] = fwd_5_7 -1
+X_fwds['10 YR'] = fwd_7_10 -1
+
+# take care of the 6 month rates to annualize
+#X_fwds['1 YR'] = fwd_6_12
+
+pickle_out = open('data/forward_rates', 'wb')
+pickle.dump(X_fwds, pickle_out)
+pickle_out.close()
