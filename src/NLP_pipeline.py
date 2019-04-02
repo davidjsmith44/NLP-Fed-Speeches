@@ -147,7 +147,7 @@ if __name__ == '__main__':
     # Importing all of the Fed Speeches
     import pickle
     #df = pickle.load( open( "../data/all_fed_speeches", "rb" ) )
-    df = pickle.load( open( "more_fed_speeches", "rb" ) )
+    df = pickle.load( open( "mvp_fed_speeches", "rb" ) )
     df.info()
 
     df.sort_values(by=['date'], ascending = False, inplace = True)
@@ -183,7 +183,7 @@ if __name__ == '__main__':
                     'cos_avg_n': ts_cos_avg_n,
                     'dates': ts_dates}
     #pickle_out = open('data/ts_cosine_sim', 'wb')
-    pickle_out = open('small_ts_cosine_sim', 'wb')
+    pickle_out = open('mvp_cosine_sim', 'wb')
     #pickle.dump([ts_cos_last, ts_cos_avg_n, ts_dates], pickle_out)
     pickle.dump(speech_dict, pickle_out)
     pickle_out.close()

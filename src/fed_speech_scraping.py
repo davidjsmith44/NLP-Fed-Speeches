@@ -267,7 +267,7 @@ if __name__ == '__main__':
     host = 'www.federalreserve.gov'
     prefix = '/newsevents/speech/'
     suffix = '-speeches.htm'
-    start_year = 2017
+    start_year = 2006
     end_year = 2019
 
     # create list of web site containing annual speech links
@@ -287,7 +287,7 @@ if __name__ == '__main__':
 
     # saving the df to a pickle file
     #os.chdir("..")
-    pickle_out = open('more_fed_speeches', 'wb')
+    pickle_out = open('mvp_fed_speeches', 'wb')
     pickle.dump(df, pickle_out)
     pickle_out.close()
 
