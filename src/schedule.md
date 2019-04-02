@@ -2,14 +2,11 @@ Capstone Schedule
 
 HIGHEST PRIORITY TO GET THE MVP
 
-1. Convert interest rates into forward rates and continously compounded interest rates
-    -simple step function here
 2. Create function to map forwards back into interest rates
 3. TAKE THE ARIMAX tutorial and make sure you know how to use this
 4. Map the speeches (the whole current shit show) into a dataframe with cosine sim
 5. Run an initial ARIMAX model
 6. Create plotting functions for the histograms and reports on mean and std deviation and kurtosis
-
 
 
     2. Finally make the call in what type of speeches we are going to
@@ -82,4 +79,6 @@ NLP
         -FX rates (and any other variables)
 
     9. Begin doing partial autocorrelations on the data
+1. Convert interest rates into forward rates and continously compounded interest rates
+    -simple step function here
     8. Train, test, cv split

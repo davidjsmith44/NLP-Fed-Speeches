@@ -146,7 +146,8 @@ if __name__ == '__main__':
 
     # Importing all of the Fed Speeches
     import pickle
-    df = pickle.load( open( "../data/all_fed_speeches", "rb" ) )
+    #df = pickle.load( open( "../data/all_fed_speeches", "rb" ) )
+    df = pickle.load( open( "more_fed_speeches", "rb" ) )
     df.info()
 
     df.sort_values(by=['date'], ascending = False, inplace = True)
@@ -167,9 +168,24 @@ if __name__ == '__main__':
     #    'cos_avg_n':ts_cos_avg_n})
     #print(df_cos_sim).info()
 
-    os.chdir("..")
-    pickle_out = open('../data/ts_cosine_sim', 'wb')
-    pickle.dump([ts_cos_last, ts_cos_avg_n, ts_dates], pickle_out)
+    #os.chdir("..")
+
+    #NOTE: We know we have at least 50 empty rows in these variables. Cleaning
+    # them up here
+    last_date = ts_dates[-1]
+    keep_these =ts_dates != last_date
+    ts_cos_last = ts_cos_last[keep_these]
+    ts_cos_avg_n = ts_cos_avg_n[keep_these]
+    ts_dates = ts_dates[keep_these]
+
+    # put the results in a dictionary to be pickled
+    speech_dict = {'cos_last':ts_cos_last,
+                    'cos_avg_n': ts_cos_avg_n,
+                    'dates': ts_dates}
+    #pickle_out = open('data/ts_cosine_sim', 'wb')
+    pickle_out = open('small_ts_cosine_sim', 'wb')
+    #pickle.dump([ts_cos_last, ts_cos_avg_n, ts_dates], pickle_out)
+    pickle.dump(speech_dict, pickle_out)
     pickle_out.close()
 
     # create a date, filter the df and run the word processing on this date

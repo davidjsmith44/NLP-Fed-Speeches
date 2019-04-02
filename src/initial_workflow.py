@@ -141,8 +141,32 @@ X = pickle.load(open("data/interest_rate_data", "rb" ))
 X_fwds = pickle.load(open('data/forward_rates', 'rb'))
 X_zeros = pickle.load(open('data/zero_rates', 'rb'))
 
+
 #df_FX = pickle.load( open( "data/FX_data", "rb" ) )
-#df_FED = pickle.load( open( "data/all_fed_speeches", "rb" ) )
+fed_metrics = pickle.load( open( "data/more_fed_speeches", "rb" ) )
+cos_last = fed_metrics[0]
+cos_avg_n = fed_metrics[1]
+fed_dates = fed_metrics[2]
+
+# set up zeros in the columns
+X['cos_last'] = 0
+X_fwds['cos_last']=0
+X_zeros['cos_last']=0
+X['cos_avg'] = 0
+X_fwds['cos_avg']=0
+X_zeros['cos_avg']=0
+
+for i in range(len(fed_dates)):
+    X['cos_last'].loc[ts_dates[i]] = cos_last[i]
+    X['cos_avg'].loc[ts_dates[i]] = cos_avg_n[i]
+
+    X_zeros['cos_last'].loc[ts_dates[i]] = cos_last[i]
+    X_zeros['cos_avg'].loc[ts_dates[i]] = cos_avg_n[i]
+
+    X_zeros['cos_last'].loc[ts_dates[i]] = cos_last[i]
+    X_zeros['cos_avg'].loc[ts_dates[i]] = cos_avg_n[i]
+
+print(X.describe())
 
 # cannot use train/test split on this because it is time series
 total_obs = len(X)

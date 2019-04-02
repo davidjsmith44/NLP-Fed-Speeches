@@ -267,7 +267,7 @@ if __name__ == '__main__':
     host = 'www.federalreserve.gov'
     prefix = '/newsevents/speech/'
     suffix = '-speeches.htm'
-    start_year = 2006
+    start_year = 2017
     end_year = 2019
 
     # create list of web site containing annual speech links
@@ -278,14 +278,16 @@ if __name__ == '__main__':
     # create dataframe containing speech information (not yet the text)
     df = create_speech_df(host, annual_htm_list)
     #print(df.info())
-
+    df['date'] = pd.to_datetime(df['date'])
+    df['date'] = df['date'].dt.strftime('%m/%d/%Y')
 
     # scrape the text from every speech in the dataframe
     df = retrieve_docs(host, df)
     print(df.info())
 
     # saving the df to a pickle file
-    os.chdir("..")
-    pickle_out = open('../data/all_fed_speeches', 'wb')
+    #os.chdir("..")
+    pickle_out = open('more_fed_speeches', 'wb')
     pickle.dump(df, pickle_out)
     pickle_out.close()
+
