@@ -136,18 +136,34 @@ import matplotlib.pyplot as plt
 import os
 import pickle
 
-os.chdir('..')
-X = pickle.load(open("data/interest_rate_data", "rb" ))
-X_fwds = pickle.load(open('data/forward_rates', 'rb'))
-X_zeros = pickle.load(open('data/zero_rates', 'rb'))
+#os.chdir('..')
+X = pickle.load(open("../data/interest_rate_data", "rb" ))
+X_fwds = pickle.load(open('../data/forward_rates', 'rb'))
+X_zeros = pickle.load(open('../data/zero_rates', 'rb'))
 
 
 #df_FX = pickle.load( open( "data/FX_data", "rb" ) )
-fed_metrics = pickle.load( open( "data/mvp_cosine_sim", "rb" ) )
+fed_metrics = pickle.load( open( "../data/mvp_cosine_sim", "rb" ) )
 cos_last = fed_metrics['cos_last']
 cos_avg_n = fed_metrics['cos_avg_n']
+ed_last = fed_metrics['ed_last']
+ed_avg_n = fed_metrics['ed_avg_n']
 fed_dates = fed_metrics['dates']
 
+# USING THE PD MERGE BRANDON TAUGHT
+avgstats = pd.DataFrame({'date':fed_dates,
+                        'ed_last': ed_last,
+                        'ed_avg_n': ed_avg_n,
+                        'cos_last': cos_last,
+                        'cos_avg_n': cos_avg_n}).groupby('date').mean()
+avgstats.index = pd.to_datetime(avgstats.index)
+
+X = X.merge(avgstats, left_index = True, right_index = True)
+X_fwds = X_fwds.merge(avgstats, left_index = True, right_index = True)
+X_zeros = X_zeros.merge(avgstats, left_index = True, right_index = True)
+
+
+'''
 # set up zeros in the columns
 X['cos_last'] = 0
 X_fwds['cos_last']=0
@@ -156,18 +172,51 @@ X['cos_avg'] = 0
 X_fwds['cos_avg']=0
 X_zeros['cos_avg']=0
 
+X['ed_last'] = 0
+X_fwds['ed_last']=0
+X_zeros['ed_last']=0
+X['ed_avg'] = 0
+X_fwds['ed_avg']=0
+X_zeros['ed_avg']=0
+
+# first find the unique dates in the fed_dates
+date_list = []
+for i in range(len(fed_dates)):
+    this_date = fed_dates[i]
+    if this_date not in date_list:
+        date_list.append(this_date)
+
+
+for i in range(len(date_list)):
+    ind_dates = fed_dates==date_list[i]
+    this_ed_last = np.sum(ed_last(ind_dates))
+    this_ed_avg_n =np.sum(ed_avg_n(ind_dates))
+    this_cos_last = np.sum(cos_last(ind_dates))
+    this_cos_avg_n = np.sum(cos_avg_n(ind_dates))
+
+    # NOW WE NEED TO FIND THE DATAFRAME DATE THAT MATCHES
+    # AND ASSIGN THESE VARIABLES TO THAT DATE
+
 for i in range(len(fed_dates)):
     X['cos_last'].loc[fed_dates[i]] = cos_last[i]
     X['cos_avg'].loc[fed_dates[i]] = cos_avg_n[i]
+    X['ed_last'].loc[fed_dates[i]] = ed_last[i]
+    X['ed_avg'].loc[fed_dates[i]] = ed_avg_n[i]
+
 
     X_zeros['cos_last'].loc[fed_dates[i]] = cos_last[i]
     X_zeros['cos_avg'].loc[fed_dates[i]] = cos_avg_n[i]
+    X_zeros['ed_last'].loc[fed_dates[i]] = ed_last[i]
+    X_zeros['ed_avg'].loc[fed_dates[i]] = ed_avg_n[i]
 
-    X_zeros['cos_last'].loc[fed_dates[i]] = cos_last[i]
-    X_zeros['cos_avg'].loc[fed_dates[i]] = cos_avg_n[i]
+
+    X_fwds['cos_last'].loc[fed_dates[i]] = cos_last[i]
+    X_fwds['cos_avg'].loc[fed_dates[i]] = cos_avg_n[i]
+    X_fwds['ed_last'].loc[fed_dates[i]] = ed_last[i]
+    X_fwds['ed_avg'].loc[fed_dates[i]] = ed_avg_n[i]
 
 print(X.describe())
-
+'''
 # cannot use train/test split on this because it is time series
 total_obs = len(X)
 train_int = int(round(total_obs*.7, 0))
@@ -191,7 +240,8 @@ dict_params = {'ar':1, 'ma': 1, "diff_ord": 1, 'target':'10 YR'}
 '''
 Need to include a dictionary that stores all of the results of the models
 '''
-
+# NOTE: THIS DICTIONARY DOES NOT WORK HERE! The model is not defined
+# I am assigning something that is not yet defined
 dict_results = {'Model': model.model_name,
               'hyperparams': dict_params,
               'forecast': forecasts}
@@ -217,7 +267,7 @@ Each entru in the list contains a dictionary with the following keys
 model_list = []
 
 this_name = 'Normal ARIMA(1,1,1)'
-hyper_params= {'ar':1, 'ma': 1, "diff_ord": 1, 'target':'10 YR'}
+hyper_params= {'ar':1, 'ma': 1, "diff_ord": 1, 'target':'ten_y'}
 forecast = 0
 model_inputs = {'model_type': 'ARIMA'
                 'name': this_name,
@@ -226,7 +276,7 @@ model_inputs = {'model_type': 'ARIMA'
                 'foreacst': forecasts}
 
 this_name = 'Normal ARIMA(2,1,2)'
-hyper_params= {'ar':2, 'ma': 2, "diff_ord": 1, 'target':'10 YR'}
+hyper_params= {'ar':2, 'ma': 2, "diff_ord": 1, 'target':'ten_y'}
 forecast = 0
 model_inputs = {'model_type': 'ARIMA',
                 'name': this_name,
@@ -238,8 +288,8 @@ model_list.append(model_inputs)
 ''' First ARIMAX model '''
 #NOTE: We need to store the formula for the ARIMA model in the hyper_params
 this_name = 'Normal ARIMAX(1,1,1)'
-hyper_params = {'ar': 1, 'ma':1, 'diff_ord':1, 'target': '10 YR',
-                'formula':'10 YR ~ 1 + cos_last'}
+hyper_params = {'ar': 1, 'ma':1, 'diff_ord':1, 'target': 'ten_y',
+                'formula':'ten_y~1+ed_last'}
 forecast = 0
 model_inputs = {'model_type': 'ARIMAX',
                 'name': this_name,
@@ -252,11 +302,11 @@ model_list = cross_validate_models(model_list, X_train, X_cv)
 
 
 ''' BELOW WORKS '''
-fwd_train = fwd_train.rename(columns = {'6 MO':'6MO', '1 YR': '1YR',
- '2YR':'2YR', '3 YR':'3YR', '5 YR':'5YR', '7 YR':'7YR',
-  '10YR':'ten_YR'})
+#fwd_train = fwd_train.rename(columns = {'6 MO':'6MO', '1 YR': '1YR',
+# '2YR':'2YR', '3 YR':'3YR', '5 YR':'5YR', '7 YR':'7YR',
+#  '10YR':'ten_YR'})
  model = pf.ARIMAX(data = fwd_train,
-         formula = 'ten_YR~1+cos_last',
+         formula = 'ten_y~1+cos_last',
          ar=1,
          ma=1,
          integ=1,
