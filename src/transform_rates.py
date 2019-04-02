@@ -6,12 +6,14 @@ def zero_coupon_bond_price(par, ytm, time):
     return par / (1 + ytm/2) ** (time*2)
 
 
-price = 100
-par = 100
+    price = 100
+    par = 100
 
-bond_prices_3M = zero_coupon_bond_price(par, X['three_m'], time=0.25)
-bond_prices_6M = zero_coupon_bond_price(par, X['six_m'], time=0.5)
-bond_prices_1YR = zero_coupon_bond_price(par, X['one_y'], time=1.0)
+    bond_prices_3M = zero_coupon_bond_price(par, X['three_m'], time=0.25)
+    bond_prices_6M = zero_coupon_bond_price(par, X['six_m'], time=0.5)
+    bond_prices_1YR = zero_coupon_bond_price(par, X['one_y'], time=1.0)
+
+    return bond_prices_3M, bond_prices_6M, bond_prices_1YR
 
 # NOW USING LOOP TO BUILD SPOT RATES ONE AT A TIME
 # 2 year bond prices
@@ -192,8 +194,7 @@ import os
 import pickle
 
 # Load up the interest rate data
-os.chdir('..')
-X = pickle.load(open("data/interest_rate_data", "rb" ) )
+X = pickle.load(open("../data/interest_rate_data", "rb" ) )
 
 # Start building zero rate curves (spot rates)
 X_zeros = X[['three_m', 'six_m', 'one_y']].copy()
@@ -214,7 +215,7 @@ X_zeros['ten_y'] = zeros_10yr
 
 
 # Saving the X_zeros to a pickle file
-pickle_out = open('data/zero_rates', 'wb')
+pickle_out = open('../data/zero_rates', 'wb')
 pickle.dump(X_zeros, pickle_out)
 pickle_out.close()
 
@@ -232,6 +233,7 @@ Need to express these as annualized rates
 
 #then take logs
 '''
+#bond_prices_3M, bond_prices_6M, bond_prices_1YR
 z_pr_6m  = zero_coupon_bond_price(par = 100,
                                     ytm = X_zeros['six_m'],
                                     time= 0.5)
@@ -285,7 +287,7 @@ X_fwds['ten_y'] = fwd_7_10 -1
 # take care of the 6 month rates to annualize
 #X_fwds['one_y'] = fwd_6_12
 
-pickle_out = open('data/forward_rates', 'wb')
+pickle_out = open('../data/forward_rates', 'wb')
 pickle.dump(X_fwds, pickle_out)
 pickle_out.close()
 

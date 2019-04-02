@@ -73,16 +73,16 @@ pickle_out = open('../data/FX_data', 'wb')
 pickle.dump(df_FX, pickle_out)
 pickle_out.close()
 
-
+'''
 def transform_rate_date(X):
-    ''' Take the dataframe X and returns transformed data in forward rates and continuously compounded interest rates '''
+    Take the dataframe X and returns transformed data in forward rates and continuously compounded interest rates
     time = np.array([.03, .5, 1.0, 2.0, 3.0, 5.0, 7.0, 10])
     # this is an iterative process, but it can be vectorized
     # First I need to calculate zero rates for 2-10 years
     # then the bond prices associated with them
     # then I can get to the forward rates
 
-    ''' I need to start with the 2 year. The coupon rates for the two year
+    I need to start with the 2 year. The coupon rates for the two year
     yield will be discounted at the 6M and 1Y rate and I will need to
     interpolate 1.5 year zero rate and calc the 2 year yeild
 
