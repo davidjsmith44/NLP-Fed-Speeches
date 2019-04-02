@@ -61,20 +61,23 @@ def calculate_similarity(new_tokens, tfid_vectorized):
         cost_last  - the cosine similarity with the new speeches and the last speeches
         cos_avg_n  - the average cosine similariy over the last n speeches
     '''
-
+    # distance metrics calculated
     cosine_sims = linear_kernel(new_tokens, tfid_vectorized)
-    # n
-    # NOTE: Need to handle the case where there are multiple speeches on the current date
+    euclid_dist = euclidean_distances(new_tokens, tfid_vectorized)
 
+    # calculating last and average of the distanc metrics
     cos_last = cosine_sims[0]
     cos_avg_n = np.mean(cosine_sims)
+    ed_last = euclid_dist[0]
+    ed_avg_n = np.mean(euclid_dist)
 
-    #need to deal with what happens whern there are multiple date
+    # NOTE: Need to handle the case where there are multiple speeches on the current date
     if len(cos_last) > 1:
         cos_last = np.mean(cos_last)
         cos_avg_n = np.mean(cos_avg_n)
-
-    return cos_last, cos_avg_n
+        ed_last = np.mean(ed_last)
+        ed_avg_n = np.mean(ed_avg_n)
+    return cos_last, cos_avg_n, ed_last, ed_avg_n
 
 
 def loop_through_dataframe(df, n_speeches):
@@ -96,6 +99,8 @@ def loop_through_dataframe(df, n_speeches):
     ts_dates = np.zeros_like(unique_dates)
     ts_cos_last = np.zeros((len(unique_dates),1))
     ts_cos_avg_n = np.zeros((len(unique_dates),1))
+    ts_ed_last = np.zeros((len(unique_dates),1))
+    ts_ed_avg_n = np.zeros((len(unique_dates),1))
 
     #for i in range(len(df)- n_speeches):
     for i in range(len(unique_dates)- 50):
@@ -107,13 +112,15 @@ def loop_through_dataframe(df, n_speeches):
 
         new_tokens = transform_new_speech(n_df, tfidvect)
 
-        cos_last, cos_avg_n = calculate_similarity(new_tokens, tfidf_vectorized)
+        cos_last, cos_avg_n, ed_last, ed_avg_n = calculate_similarity(new_tokens, tfidf_vectorized)
 
         ts_dates[i] = this_date
         ts_cos_last[i] = cos_last
         ts_cos_avg_n[i] = cos_avg_n
+        ts_ed_last[i] = ed_last
+        ts_ed_avg_n[i] = ed_avg_n
 
-    return ts_dates, ts_cos_last, ts_cos_avg_n
+    return ts_dates, ts_cos_last, ts_cos_avg_n, ts_ed_last, ts_ed_avg_n
 
 
 # fit this dataframe to the last vectorization
@@ -140,14 +147,15 @@ if __name__ == '__main__':
     from nltk.stem.wordnet import WordNetLemmatizer
 
     from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
-    from sklearn.metrics.pairwise import linear_kernel
+    from sklearn.metrics.pairwise import linear_kernel, euclidean_distances
+
 
     import os
 
     # Importing all of the Fed Speeches
     import pickle
     #df = pickle.load( open( "../data/all_fed_speeches", "rb" ) )
-    df = pickle.load( open( "mvp_fed_speeches", "rb" ) )
+    df = pickle.load( open( "../data/mvp_fed_speeches", "rb" ) )
     df.info()
 
     df.sort_values(by=['date'], ascending = False, inplace = True)
@@ -156,7 +164,7 @@ if __name__ == '__main__':
     ''' List of variables to include '''
     n_speeches = 10
 
-    ts_dates, ts_cos_last, ts_cos_avg_n = loop_through_dataframe(df, n_speeches)
+    ts_dates, ts_cos_last, ts_cos_avg_n, ts_ed_last, ts_ed_avg_n = loop_through_dataframe(df, n_speeches)
     ts_dates = np.reshape(ts_dates, (-1,1))
     #df_dict = {'date':ts_dates, 'cos_last': ts_cos_last, 'cos_avg_n':ts_cos_avg_n}
     #df_index = np.arange(len(ts_dates))
@@ -176,62 +184,19 @@ if __name__ == '__main__':
     keep_these =ts_dates != last_date
     ts_cos_last = ts_cos_last[keep_these]
     ts_cos_avg_n = ts_cos_avg_n[keep_these]
+    ts_ed_last = ts_ed_last[keep_these]
+    ts_ed_avg_n =ts_ed_avg_n[keep_these]
     ts_dates = ts_dates[keep_these]
+
 
     # put the results in a dictionary to be pickled
     speech_dict = {'cos_last':ts_cos_last,
                     'cos_avg_n': ts_cos_avg_n,
+                    'ed_last': ts_ed_last,
+                    'ed_avg_n': ts_ed_avg_n,
                     'dates': ts_dates}
     #pickle_out = open('data/ts_cosine_sim', 'wb')
-    pickle_out = open('mvp_cosine_sim', 'wb')
+    pickle_out = open('../data/mvp_cosine_sim', 'wb')
     #pickle.dump([ts_cos_last, ts_cos_avg_n, ts_dates], pickle_out)
     pickle.dump(speech_dict, pickle_out)
     pickle_out.close()
-
-    # create a date, filter the df and run the word processing on this date
-    #this_date = datetime.datetime(2017, 1, 15)
-    #recent_df = create_speech_list(df, date, numb_speeches)
-    #recent_model = implement_ftidf_model(df)
-
-
-    # working on the cosine similarities !!!
-    # create the new dataframe of the next speech = called df_new
-    #new_text = df_new['text']
-    # fit this dataframe to the last vectorization
-    #new_tokens = tfidvect.transform(new_text)
-    #cosine_sims = linear_kernel(new_tokens, tfidf_vectorized)
-    #cosine_sims.shape
-
-    #cos_avg_n = np.zeros_like(df['date'])
-    #cos_last = np.zeros_like(df['date'])
-    #df['cos_last'] = cos_last
-    #df['cos_avg_n'] = cos_avg_n
-
-
-    # create list of dates where there was at least one speech and sort
-    #unique_dates = df['date'].unique()
-    #unique_dates = np.sort(unique_dates)
-
-    # create array to hold cosine similarities and words based on n_speeches
-    # the original dataframe 'df' is sorted with the first speech being the most current
-    # pull the last n_speeches
-    #first_date = df['date'].iloc[-n_speeches]
-    #unique_date = unique_dates >= first_date
-    #ud = np.datetime_as_string(unique_dates, 'D')
-    # NOTE: Need to fix if there are two speeches on the same date - adjust the cosine similarity
-
-
-    '''
-    NEED TO DO TODAY
-    1. determine how to do cosine similarity of a new speech relative
-        to the last n speeches (out of sample forecast)
-    2. Finally make the call in what type of speeches we are going to
-        use in this model (FOMC only?)
-    3. Create data pipeline for the quandl interest rate pull and
-        publish initial results to github
-    4. Look at initial autocorrelations for this model of just interest rates
-    5. Get out the histocial eigenvalues and start plotting them
-    6. Plot the impact on interest rates due to the eignvalues
-    7. Determine game plan to close the loop!!!
-
-    '''
