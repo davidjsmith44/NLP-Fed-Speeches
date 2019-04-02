@@ -35,6 +35,16 @@ X = X.drop(['1 MO', '2 MO', '20 YR', '30 YR'], axis=1)
 
 # transform to interest rates
 X = X/100
+
+# Change 4/2 to handle bad column names
+X = X.rename(columns = {'3 MO': 'three_m',
+                    '6 MO': 'six_m',
+                    '1 YR': 'one_y',
+                    '2 YR': 'two_y',
+                    '3 YR': 'three_y',
+                    '5 YR': 'five_y',
+                    '7 YR': 'seven_y',
+                    '10 YR': 'ten_y', })
 # saving the df to a pickle file
 pickle_out = open('../data/interest_rate_data', 'wb')
 pickle.dump(X, pickle_out)
@@ -84,26 +94,7 @@ def transform_rate_date(X):
 
     NEED TO REMEMBER THE LOG TRICK HERE
 
-
     '''
-    zeros = np.zeros_like(X)
-    forwards = np.zeros_like(X)
-
-    zeros[:,0:3] = X[:,0:3]
-
-    p = 1000
-    cpn = p*X[:,3]* p
-
-    pv_2yr = cpn / X[:,1] + cpn / x[:,2]
-
-    first_pmt = p*
-    bond_prices = 1/(yield)exp(T)
-
-
-    zeros =
-    forwards =
-    ''' THERE HAS TO BE A PACKAGE FOR THIS THAT I SHOULD USE '''
-
 
 '''
 n_comp = 5
@@ -124,10 +115,10 @@ shocks = test.fit_transform(X)
 
 
 def plot_3_pcs(comps, shocks):
-    ''' TO DO ON THIS PLOT
+     TO DO ON THIS PLOT
         1. make the X axis for charts on right the date
         2. optional title with start and end dates
-    '''
+
     fig, axs = plt.subplots(3,2, figsize = (12,12))
 
     axs[0,0].plot(comps[0, :], color='k')
