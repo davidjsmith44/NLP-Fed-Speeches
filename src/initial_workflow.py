@@ -143,10 +143,10 @@ X_zeros = pickle.load(open('data/zero_rates', 'rb'))
 
 
 #df_FX = pickle.load( open( "data/FX_data", "rb" ) )
-fed_metrics = pickle.load( open( "data/more_fed_speeches", "rb" ) )
-cos_last = fed_metrics[0]
-cos_avg_n = fed_metrics[1]
-fed_dates = fed_metrics[2]
+fed_metrics = pickle.load( open( "data/mvp_cosine_sim", "rb" ) )
+cos_last = fed_metrics['cos_last']
+cos_avg_n = fed_metrics['cos_avg_n']
+fed_dates = fed_metrics['dates']
 
 # set up zeros in the columns
 X['cos_last'] = 0
@@ -157,14 +157,14 @@ X_fwds['cos_avg']=0
 X_zeros['cos_avg']=0
 
 for i in range(len(fed_dates)):
-    X['cos_last'].loc[ts_dates[i]] = cos_last[i]
-    X['cos_avg'].loc[ts_dates[i]] = cos_avg_n[i]
+    X['cos_last'].loc[fed_dates[i]] = cos_last[i]
+    X['cos_avg'].loc[fed_dates[i]] = cos_avg_n[i]
 
-    X_zeros['cos_last'].loc[ts_dates[i]] = cos_last[i]
-    X_zeros['cos_avg'].loc[ts_dates[i]] = cos_avg_n[i]
+    X_zeros['cos_last'].loc[fed_dates[i]] = cos_last[i]
+    X_zeros['cos_avg'].loc[fed_dates[i]] = cos_avg_n[i]
 
-    X_zeros['cos_last'].loc[ts_dates[i]] = cos_last[i]
-    X_zeros['cos_avg'].loc[ts_dates[i]] = cos_avg_n[i]
+    X_zeros['cos_last'].loc[fed_dates[i]] = cos_last[i]
+    X_zeros['cos_avg'].loc[fed_dates[i]] = cos_avg_n[i]
 
 print(X.describe())
 
@@ -239,7 +239,7 @@ model_list.append(model_inputs)
 #NOTE: We need to store the formula for the ARIMA model in the hyper_params
 this_name = 'Normal ARIMAX(1,1,1)'
 hyper_params = {'ar': 1, 'ma':1, 'diff_ord':1, 'target': '10 YR',
-                'formula':'10 YR ~ 1 + cos_sim + crisis'}
+                'formula':'10 YR ~ 1 + cos_last'}
 forecast = 0
 model_inputs = {'model_type': 'ARIMAX',
                 'name': this_name,
@@ -249,4 +249,19 @@ model_inputs = {'model_type': 'ARIMAX',
 model_list.append(model_inputs)
 
 model_list = cross_validate_models(model_list, X_train, X_cv)
+
+
+''' BELOW WORKS '''
+fwd_train = fwd_train.rename(columns = {'6 MO':'6MO', '1 YR': '1YR',
+ '2YR':'2YR', '3 YR':'3YR', '5 YR':'5YR', '7 YR':'7YR',
+  '10YR':'ten_YR'})
+ model = pf.ARIMAX(data = fwd_train,
+         formula = 'ten_YR~1+cos_last',
+         ar=1,
+         ma=1,
+         integ=1,
+         family=pf.Normal())
+#NOTE: I think this does not like the column names starting with a number
+
+# HESSIAN IS NOT INVERTIBLE! TRY ANOTHER SPECIFICATION
 
