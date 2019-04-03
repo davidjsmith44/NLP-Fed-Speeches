@@ -290,37 +290,3 @@ X_fwds['ten_y'] = fwd_7_10 -1
 pickle_out = open('../data/forward_rates', 'wb')
 pickle.dump(X_fwds, pickle_out)
 pickle_out.close()
-
-
-''' BELOW DID NOT WORK - need to KILL after get confirmation the function works
-yc = BootstrapYieldCurve()
-# NOTE the fields are par, term, coupon and price
-i = 0
-yc.add_instrument(par, 0.25, 0, bond_prices_3M[0])
-yc.add_instrument(par, 0.5, 0, bond_prices_6M[0])
-yc.add_instrument(par, 1.0, 0, bond_prices_1YR[0])
-# now adding the two year
-yc.add_instrument(100, 2.0, X['two_y'].iloc[i],100)
-yc.add_instrument(100, 3.0, X['three_y'].iloc[i],100)
-yc.add_instrument(100, 5.0, X['five_y'].iloc[i],100)
-yc.add_instrument(100, 7.0, X['seven_y'].iloc[i],100)
-yc.add_instrument(100, 10.0, X['ten_y'].iloc[i],100)
-
-
-y = yc.get_zero_rates()
-x = yc.get_maturities()
-
-#import math
-
-
-yield_curve = BootstrapYieldCurve()
-yield_curve.add_instrument(100, 0.25, 0., 97.5)
-yield_curve.add_instrument(100, 0.5, 0., 94.9)
-yield_curve.add_instrument(100, 1.0, 0., 90.)
-yield_curve.add_instrument(100, 1.5, 8, 96., 2)
-yield_curve.add_instrument(100, 2., 12, 101.6, 2)
-
-y = yc.get_zero_rates()
-x = yc.get_maturities()
-'''
-

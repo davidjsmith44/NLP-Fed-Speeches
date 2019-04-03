@@ -1,7 +1,7 @@
 Capstone Schedule
 
 HIGHEST PRIORITY TO GET THE MVP
-
+WTF - I am using longer set of interest rates than I have FED speeches. No wonder we are seeing something wrong!
 2. Create function to map forwards back into interest rates
 3. TAKE THE ARIMAX tutorial and make sure you know how to use this
 4. Map the speeches (the whole current shit show) into a dataframe with cosine sim
@@ -21,7 +21,6 @@ HIGHEST PRIORITY TO GET THE MVP
         a. Do I need to take a max of the speeches vs average?
         b. Should this be returning everything so that I can use all as hyper parameters?
     3. Should I store the most important words from the simulation for use later in      explaining the larger cosine similarity?
-    4. Hanle the datetime64 and timestamp data differently
     5. Add speaker titles and possibly look at just 'Economic Outlook' of speeches
     6. Is there an interactive way to present the data over time
 
@@ -36,7 +35,6 @@ HIGHEST PRIORITY TO GET THE MVP
     3. Transform the interest rate data into forward rates
         -provide a brief explaination of why
         -create charts that show what this looks like
-    7. Convert these into dataframe
     10. Create initial pipeline for a time series model
         Delta PC = f (past delta_PC, changes in FX rates (lagged), fed_speech_similarity)
     11. Prediction/Complete the initial loop?
@@ -48,6 +46,35 @@ HIGHEST PRIORITY TO GET THE MVP
                         -here is the resulting impact on the forward rates
                         -here is the resulting impact on Treasury yields
 
+# TO BE DONE April 2, 2018
+1. NLP pipeline - change number of words, create several different vectors for the data based on hyperparameters
+    -change how many features
+    -lemmatize
+    -how many speeches to compare them to
+2. Do I just look at the speeches labeled 'Outlook' or 'Policy' - try this as a model enhancement
+
+# DATA WORK
+1. Change the data collection to handle the quandl data and merge the NLP stuff before we get to the initial_workflow section.
+Make all the preprocesssing in one section (somehow)
+
+2. What exactly do we want to do here with the output
+    -create one period forecasts for each model
+    -look at the distributions for the model
+    -do all of this in the training datasets
+
+3. Build something to compare forwards to zeros to yields
+    -base model to run them all through based on my results from the train method
+    -incorporate the PCA as well
+
+4. Look into other forms of interence besided MLE!
+
+5. What is the target? 10 year, 5 year, whole yield curve?
+    Is there a way to compare this across all of the yield curves?
+        -PCA will give us this by iteself.
+        -Do I fit all of the models together for each part of the term structure and run each model like that?
+
+6. Clean up code
+7. Move on to SQL and something else.
 
 
 

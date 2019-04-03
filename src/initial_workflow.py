@@ -34,6 +34,17 @@ STEPS:
 '''
 
 # SOMEWHERE HERE WE SHOULD DO EDA ON THESE FOR THE PRESENTATION
+def df_add_first_diff(df):
+    ' Adds the first differenced columns to the dataframe'
+    diff_df = df.diff()
+    df['d_six_m'] = diff_df['six_m']
+    df['d_one_y'] = diff_df['one_y']
+    df['d_two_y'] = diff_df['two_y']
+    df['d_three_y'] = diff_df['three_y']
+    df['d_five_y'] = diff_df['five_y']
+    df['d_seven_y'] = diff_df['seven_y']
+    df['d_ten_y'] = diff_df['ten_y']
+    return df
 
 ''' Working on the Gaussian Model for the MVP on base level rates '''
 def forecast_gaussian(X):
@@ -141,6 +152,16 @@ X = pickle.load(open("../data/interest_rate_data", "rb" ))
 X_fwds = pickle.load(open('../data/forward_rates', 'rb'))
 X_zeros = pickle.load(open('../data/zero_rates', 'rb'))
 
+''' NEED TO CREATE THE DIFFERENCED TIME SERIES OF FORWARDS '''
+X = df_add_first_diff(X)
+X_fwds = df_add_first_diff(X_fwds)
+X_zeros = df_add_first_diff(X_zeros)
+
+
+
+
+
+
 
 #df_FX = pickle.load( open( "data/FX_data", "rb" ) )
 fed_metrics = pickle.load( open( "../data/mvp_cosine_sim", "rb" ) )
@@ -150,6 +171,8 @@ ed_last = fed_metrics['ed_last']
 ed_avg_n = fed_metrics['ed_avg_n']
 fed_dates = fed_metrics['dates']
 
+
+
 # USING THE PD MERGE BRANDON TAUGHT
 avgstats = pd.DataFrame({'date':fed_dates,
                         'ed_last': ed_last,
@@ -158,65 +181,17 @@ avgstats = pd.DataFrame({'date':fed_dates,
                         'cos_avg_n': cos_avg_n}).groupby('date').mean()
 avgstats.index = pd.to_datetime(avgstats.index)
 
-X = X.merge(avgstats, left_index = True, right_index = True)
-X_fwds = X_fwds.merge(avgstats, left_index = True, right_index = True)
-X_zeros = X_zeros.merge(avgstats, left_index = True, right_index = True)
+X = X.merge(avgstats, how='left', left_index = True, right_index = True)
+X_fwds = X_fwds.merge(avgstats, how='left', left_index = True, right_index = True)
+X_zeros = X_zeros.merge(avgstats, how = 'left', left_index = True, right_index = True)
+
+X.fillna(value=0, inplace=True)
+X_fwds.fillna(value=0, inplace=True)
+X_zeros.fillna(value=0, inplace=True)
 
 
-'''
-# set up zeros in the columns
-X['cos_last'] = 0
-X_fwds['cos_last']=0
-X_zeros['cos_last']=0
-X['cos_avg'] = 0
-X_fwds['cos_avg']=0
-X_zeros['cos_avg']=0
-
-X['ed_last'] = 0
-X_fwds['ed_last']=0
-X_zeros['ed_last']=0
-X['ed_avg'] = 0
-X_fwds['ed_avg']=0
-X_zeros['ed_avg']=0
-
-# first find the unique dates in the fed_dates
-date_list = []
-for i in range(len(fed_dates)):
-    this_date = fed_dates[i]
-    if this_date not in date_list:
-        date_list.append(this_date)
 
 
-for i in range(len(date_list)):
-    ind_dates = fed_dates==date_list[i]
-    this_ed_last = np.sum(ed_last(ind_dates))
-    this_ed_avg_n =np.sum(ed_avg_n(ind_dates))
-    this_cos_last = np.sum(cos_last(ind_dates))
-    this_cos_avg_n = np.sum(cos_avg_n(ind_dates))
-
-    # NOW WE NEED TO FIND THE DATAFRAME DATE THAT MATCHES
-    # AND ASSIGN THESE VARIABLES TO THAT DATE
-
-for i in range(len(fed_dates)):
-    X['cos_last'].loc[fed_dates[i]] = cos_last[i]
-    X['cos_avg'].loc[fed_dates[i]] = cos_avg_n[i]
-    X['ed_last'].loc[fed_dates[i]] = ed_last[i]
-    X['ed_avg'].loc[fed_dates[i]] = ed_avg_n[i]
-
-
-    X_zeros['cos_last'].loc[fed_dates[i]] = cos_last[i]
-    X_zeros['cos_avg'].loc[fed_dates[i]] = cos_avg_n[i]
-    X_zeros['ed_last'].loc[fed_dates[i]] = ed_last[i]
-    X_zeros['ed_avg'].loc[fed_dates[i]] = ed_avg_n[i]
-
-
-    X_fwds['cos_last'].loc[fed_dates[i]] = cos_last[i]
-    X_fwds['cos_avg'].loc[fed_dates[i]] = cos_avg_n[i]
-    X_fwds['ed_last'].loc[fed_dates[i]] = ed_last[i]
-    X_fwds['ed_avg'].loc[fed_dates[i]] = ed_avg_n[i]
-
-print(X.describe())
-'''
 # cannot use train/test split on this because it is time series
 total_obs = len(X)
 train_int = int(round(total_obs*.7, 0))
@@ -306,12 +281,12 @@ model_list = cross_validate_models(model_list, X_train, X_cv)
 # '2YR':'2YR', '3 YR':'3YR', '5 YR':'5YR', '7 YR':'7YR',
 #  '10YR':'ten_YR'})
  model = pf.ARIMAX(data = fwd_train,
-         formula = 'ten_y~1+cos_last',
+         formula = 'ten_y~1+ed_last',
          ar=1,
          ma=1,
          integ=1,
          family=pf.Normal())
-#NOTE: I think this does not like the column names starting with a number
 
-# HESSIAN IS NOT INVERTIBLE! TRY ANOTHER SPECIFICATION
-
+m = model.fit('MLE')
+m.summary()
+model.predict(h=1, oos_data= fwd_train.iloc[-1])
