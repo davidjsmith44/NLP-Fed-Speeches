@@ -168,7 +168,7 @@ def base_HJM_projection(df):
     #plt.subplot(1, 3, 3), fit_volatility(2, 3, '3rd component');
 
 
-    #mc_tenors = linspace(0,25,51)
+    #mc_tenors = np.linspace(0,10,2600)
     mc_tenors = np.array([0.5, 1, 2, 3, 5, 7, 10])
     # Discretize fitted volfuncs for the purpose of monte carlo simulation
     mc_vols = np.matrix([[fitted_vol.calc(tenor) for tenor in mc_tenors] for fitted_vol in fitted_vols]).transpose()
@@ -275,8 +275,7 @@ X_test = X[cv_int:]
 
 
 tenors = [0.5, 1, 2, 3, 5, 7, 10]
-mc_tenors = np.linspace(0,25,51)
-
+mc_tenors = [0.5, 1, 2, 3, 5, 7, 10]
 # Looping through the CV data to create cross val data sets
 fcst_array = np.zeros(shape = (len(fwd_cv),len(tenors)))
 for i in range(len(fwd_cv)):
@@ -287,7 +286,19 @@ for i in range(len(fwd_cv)):
 
 # now we have the fcst_array and can use this to compare to
 # the actual change in fwds
-    actual_array = fwd_cv[['d_six_m', 'd_one_y', 'd_two_y',
-        'd_three_y', 'd_five_y', 'd_seven_y', "d_ten_y"]].as_matrix()
+actual_array = fwd_cv[['six_m', 'one_y', 'two_y',
+        'three_y', 'five_y', 'seven_y', "ten_y"]].as_matrix()
 
-    fcst_error = fcst_array - actual_array
+fcst_error = fcst_array - actual_array
+plt.hist(fcst_error[:,6], bins=25, normed="True")
+plt.show()
+
+plt.scatter(fcst_error[:,0], fcst_error[:,6])
+plt.show()
+
+dict_out = {'fcst': fcst_array,
+            'actuals': actual_array,
+            'fcst_error': fcst_error}
+pickle_out = open('../data/initial_fcst_error', 'wb')
+pickle.dump(dict_out, pickle_out)
+pickle_out.close()
