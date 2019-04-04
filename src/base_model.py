@@ -29,6 +29,18 @@ STEPS:
 '''
 
 # LETS USE HIS FOR THE BASELINE MODEL
+def df_add_first_diff(df):
+    ' Adds the first differenced columns to the dataframe'
+    diff_df = df.diff()
+    df['d_six_m'] = diff_df['six_m']
+    df['d_one_y'] = diff_df['one_y']
+    df['d_two_y'] = diff_df['two_y']
+    df['d_three_y'] = diff_df['three_y']
+    df['d_five_y'] = diff_df['five_y']
+    df['d_seven_y'] = diff_df['seven_y']
+    df['d_ten_y'] = diff_df['ten_y']
+    return df
+
 ''' Volatility Fitting '''
 
 def get_matrix_column(mat,i):
@@ -44,7 +56,7 @@ class PolynomialInterpolator:
         X = np.array([x**i for i in reversed(range(n))])
         return sum(np.multiply(X, C))
 
-def fit_volatility(i, degree, title, fitted_vols):
+def fit_volatility(i, degree, title, fitted_vols, vols):
     vol = get_matrix_column(vols, i)
     fitted_vol = PolynomialInterpolator(np.polyfit(tenors, vol, degree))
     #plt.plot(tenors, vol, marker='.', label='Discretized volatility')
@@ -147,9 +159,9 @@ def base_HJM_projection(df):
 
     # fitting the volatility functions as a polynomial
     fitted_vols = []
-    fit_volatility(0, 3, '1st component', fitted_vols)
-    fit_volatility(1, 3, '2nd component', fitted_vols)
-    fit_volatility(2, 3, '3rd component', fitted_vols)
+    fit_volatility(0, 3, '1st component', fitted_vols, vols)
+    fit_volatility(1, 3, '2nd component', fitted_vols, vols)
+    fit_volatility(2, 3, '3rd component', fitted_vols, vols)
     ''' NOTE: This fitting of a volatility function may be overkill for a one day simulation '''
     #plt.pubplot(1, 3, 1), fit_volatility(0, 3, '1st component');
     #plt.subplot(1, 3, 2), fit_volatility(1, 3, '2nd component');
@@ -175,7 +187,7 @@ def base_HJM_projection(df):
 
 
     ''' QUESTION: Does this drift include all principal components?'''
-    hist_rates =np.matrix(X_fwds[['six_m', 'one_y', 'two_y', 'three_y', 'five_y', 'seven_y','ten_y']])
+    hist_rates =np.matrix(fwd_cv[['six_m', 'one_y', 'two_y', 'three_y', 'five_y', 'seven_y','ten_y']])
     curve_spot = np.array(hist_rates[-1,:].flatten())[0]
     # plt.plot(mc_tenors, curve_spot.transpose(), marker='.')
     # plt.ylabel('$f(t_0,T)$')
@@ -189,41 +201,93 @@ def base_HJM_projection(df):
         proj_rates.append(f)
 
     proj_rates = np.matrix(proj_rates)
-    #plt.plot(proj_timeline.transpose(), proj_rates)
-    #plt.xlabel(r'Time $t$')
-    #plt.ylabel(r'Rate $f(t,\tau)$');
-    #plt.title(r'Simulated $f(t,\tau)$ by $t$')
-    #plt.show()
-    #plt.plot(mc_tenors, proj_rates.transpose())
-    #plt.xlabel(r'Tenor $\tau$')
-    #plt.ylabel(r'Rate $f(t,\tau)$')
-    #plt.title(r'Simulated $f(t,\tau)$ by $\tau$')
-    #plt.show()
-
+    #new_rates = proj_rates[-1,:0]
+    #return new_rates
     return proj_rates
 
-
+if __name__ == __main__:
 
 import copy as copylib
 from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
 import numpy as np
-# put this into a function later
+import pandas as pd
+import pyflux as pf
+import datetime as datetime
+import matplotlib.pyplot as plt
+
+import os
+import pickle
+
+
+
+#os.chdir('..')
+X = pickle.load(open("../data/interest_rate_data", "rb" ))
+X_fwds = pickle.load(open('../data/forward_rates', 'rb'))
+X_zeros = pickle.load(open('../data/zero_rates', 'rb'))
+
+# First difference the time series data for stationarity
+X = df_add_first_diff(X)
+X_fwds = df_add_first_diff(X_fwds)
+X_zeros = df_add_first_diff(X_zeros)
+
+
+#df_FX = pickle.load( open( "data/FX_data", "rb" ) )
+fed_metrics = pickle.load( open( "../data/mvp_cosine_sim", "rb" ) )
+cos_last = fed_metrics['cos_last']
+cos_avg_n = fed_metrics['cos_avg_n']
+ed_last = fed_metrics['ed_last']
+ed_avg_n = fed_metrics['ed_avg_n']
+fed_dates = fed_metrics['dates']
+
+# USING THE PD MERGE BRANDON TAUGHT
+avgstats = pd.DataFrame({'date':fed_dates,
+                        'ed_last': ed_last,
+                        'ed_avg_n': ed_avg_n,
+                        'cos_last': cos_last,
+                        'cos_avg_n': cos_avg_n}).groupby('date').mean()
+avgstats.index = pd.to_datetime(avgstats.index)
+
+X = X.merge(avgstats, how='left', left_index = True, right_index = True)
+X_fwds = X_fwds.merge(avgstats, how='left', left_index = True, right_index = True)
+X_zeros = X_zeros.merge(avgstats, how = 'left', left_index = True, right_index = True)
+
+X.fillna(value=0, inplace=True)
+X_fwds.fillna(value=0, inplace=True)
+X_zeros.fillna(value=0, inplace=True)
+
+# cannot use train/test split on this because it is time series
+total_obs = len(X)
+train_int = int(round(total_obs*.7, 0))
+cv_int = int(round(total_obs*.85, 0))
+
+fwd_train = X_fwds[0:train_int]
+fwd_cv = X_fwds[train_int:cv_int]
+fwd_test = X_fwds[cv_int:]
+
+zero_train = X_zeros[0:train_int]
+zero_cv = X_zeros[train_int:cv_int]
+zero_test = X_zeros[cv_int:]
+
+X_train = X[0:train_int]
+X_cv = X[train_int:cv_int]
+X_test = X[cv_int:]
+
+
 tenors = [0.5, 1, 2, 3, 5, 7, 10]
 mc_tenors = np.linspace(0,25,51)
 
-proj_rates = base_HJM_projection(df)
+# Looping through the CV data to create cross val data sets
+fcst_array = np.zeros(shape = (len(fwd_cv),len(tenors)))
+for i in range(len(fwd_cv)):
+    fwd_train = fwd_train.append(fwd_cv.iloc[i])
+    #print(fwd_train.tail())
 
+    fcst_array[i,:] = base_HJM_projection(fwd_train)[1,:]
 
-# test = PCA(n_components = 7, random_state=0)
-# test.fit(X_fwds[['d_six_m', 'd_one_y', 'd_two_y', 'd_three_y', 'd_five_y', 'd_seven_y', 'd_ten_y']])
+# now we have the fcst_array and can use this to compare to
+# the actual change in fwds
+    actual_array = fwd_cv[['d_six_m', 'd_one_y', 'd_two_y',
+        'd_three_y', 'd_five_y', 'd_seven_y', "d_ten_y"]].as_matrix()
 
-# print("Explained variance of first pc: {0:2.2f}".format(test.explained_variance_ratio_[0]))
-# print("Explained variance of second pc: {0:2.2f}".format(test.explained_variance_ratio_[1]))
-# print("Explained variance of third pc: {0:2.2f}".format(test.explained_variance_ratio_[2]))
-# print("Explained variance of forth pc: {0:2.2f}".format(test.explained_variance_ratio_[3]))
-# print("Explained variance of fith pc: {0:2.2f}".format(test.explained_variance_ratio_[4]))
-# #test.explained_variance_ratio_
-
-# # This is how I recover the shocks
-# shocks = test.fit_transform(X_fwds[['d_six_m', 'd_one_y', 'd_two_y', 'd_three_y', 'd_five_y', 'd_seven_y', 'd_ten_y']])
+    fcst_error = fcst_array - actual_array
