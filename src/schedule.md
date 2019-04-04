@@ -1,5 +1,16 @@
 Capstone Schedule
 
+APRIL 4th List
+1. Create the pipeline
+    -starts with current training set
+    -take PCA on the training set
+    -ARIMAX on first element of shocks
+    -take one period changes to the shocks
+    -punch back into term structure model
+    move on to next period
+
+
+
 HIGHEST PRIORITY TO GET THE MVP
 WTF - I am using longer set of interest rates than I have FED speeches. No wonder we are seeing something wrong!
 2. Create function to map forwards back into interest rates

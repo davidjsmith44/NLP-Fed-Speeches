@@ -221,11 +221,11 @@ import pickle
 
 
 
-#os.chdir('..')
 X = pickle.load(open("../data/interest_rate_data", "rb" ))
 X_fwds = pickle.load(open('../data/forward_rates', 'rb'))
 X_zeros = pickle.load(open('../data/zero_rates', 'rb'))
 
+''' BELOW NEEDS TO BE IN THE PROCESS DATA SECTION '''
 # First difference the time series data for stationarity
 X = df_add_first_diff(X)
 X_fwds = df_add_first_diff(X_fwds)
