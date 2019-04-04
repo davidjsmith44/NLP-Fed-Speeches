@@ -7,8 +7,8 @@ a dataframe with the following columns
     date
     speaker
     title
-    link (to site for speech text)
-    text (speech stored as a string)
+    link    (to site for speech text)
+    text    (speech stored as a string)
 
 The Federal Reserve website contains a searchable of their speeches at:
     https://www.federalreserve.gov/newsevents/speeches.htm
@@ -18,7 +18,6 @@ to the path to the text file. For example:
     "/newsevents/speech/2019-speeches.htm"
     "/newsevents/speech/2018-speeches.htm"
     "/newsevents/speech/2006speech.htm"
-
 
 '''
 

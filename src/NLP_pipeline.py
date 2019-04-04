@@ -1,5 +1,19 @@
-''' Initial NLP Pipeline '''
+''' Initial NLP Pipeline
+This file processes the text of the federal reserve speeches created by 'fed_speech_scraping.py'
 
+The output of this process is saved in the pickle file 'mvp_cosine_sim'. This file contains a dictionary
+with the following keys
+    'cos_last':     a vector of the cosine similarity between the speeches on a particular date and the speeches
+                    on a prior date
+    'cos_avg_n':    a vector of the cosine similarity between the speeches on a particular date and the average of
+                    speeches over the last 'n' speech dates
+    'ed_last':      a vector containing the euclidian distance between the speeches on a particular date with the
+                    speeches on a prior date
+    'ed_avg_n':     a vector containing the euclidean distance bewteen speeches on a particular date with the average
+                    speeches over the last 'n' speech dates
+    'dates':        a vector the dates associated with these statistics
+
+ '''
 
 def create_speech_dfs(df, date, numb_speeches):
     '''
