@@ -152,15 +152,10 @@ X = pickle.load(open("../data/interest_rate_data", "rb" ))
 X_fwds = pickle.load(open('../data/forward_rates', 'rb'))
 X_zeros = pickle.load(open('../data/zero_rates', 'rb'))
 
-''' NEED TO CREATE THE DIFFERENCED TIME SERIES OF FORWARDS '''
+# First difference the time series data for stationarity
 X = df_add_first_diff(X)
 X_fwds = df_add_first_diff(X_fwds)
 X_zeros = df_add_first_diff(X_zeros)
-
-
-
-
-
 
 
 #df_FX = pickle.load( open( "data/FX_data", "rb" ) )
@@ -188,8 +183,6 @@ X_zeros = X_zeros.merge(avgstats, how = 'left', left_index = True, right_index =
 X.fillna(value=0, inplace=True)
 X_fwds.fillna(value=0, inplace=True)
 X_zeros.fillna(value=0, inplace=True)
-
-
 
 
 # cannot use train/test split on this because it is time series

@@ -54,8 +54,6 @@ WTF - I am using longer set of interest rates than I have FED speeches. No wonde
 2. Do I just look at the speeches labeled 'Outlook' or 'Policy' - try this as a model enhancement
 
 # DATA WORK
-1. Change the data collection to handle the quandl data and merge the NLP stuff before we get to the initial_workflow section.
-Make all the preprocesssing in one section (somehow)
 
 2. What exactly do we want to do here with the output
     -create one period forecasts for each model
@@ -106,6 +104,4 @@ NLP
         -FX rates (and any other variables)
 
     9. Begin doing partial autocorrelations on the data
-1. Convert interest rates into forward rates and continously compounded interest rates
-    -simple step function here
-    8. Train, test, cv split
+
