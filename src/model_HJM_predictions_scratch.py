@@ -17,7 +17,8 @@ def model_HJM_projection(df, model_dict):
     '''
     # BEGIN: below is the old code for PCA
     X = df[['d_six_m', 'd_one_y', 'd_two_y', 'd_three_y', 'd_five_y', 'd_seven_y', 'd_ten_y']]
-
+    # need to drop the first column of the dataframe since it contains blanks for the change in rates
+    X=X.iloc[1:]
     n_comp = 3
     test = PCA(n_components = n_comp, random_state=44)
 
@@ -26,11 +27,32 @@ def model_HJM_projection(df, model_dict):
 
     # HERE WE NEED TO DO A MODEL ON THE SHOCKS
     # we are going to add the shocks to the dataframe
+    df['shock1']= 0
+    df['shock2']= 0
+    df['shock3']= 0
 
     df['shock1'] = shocks[:,0]
     df['shock2'] = shocks[:,1]
     df['shock3'] = shocks[:,2]
 
+    #import pyflux as pf
+    model = pf.ARIMAX(data = df.iloc[:-1], formula = 'shock1~1+ed_last+shock2+shock3',
+            ar=4, ma=5, integ=0, family=pf.Normal())
+
+    test_fit = model.fit("MLE")
+    test_fit.summary()
+    test_fit = model.fit("MLE")
+    test_fit.summary()
+    oos_data = df.iloc[-1]
+    oos_data['ed_last'] = 0
+    oos_data['ed_avg_n'] = 0
+    oos_data['cos_last'] = 0
+    oos_data['cos_avg_n'] = 0
+    oos_data['shock1']= 0
+    oos_data['shock2']= 0
+    oos_data['shock3']= 0
+
+    prediction = model.predict(h = 10, oos_data, intervals=False)
 
     # END: old code for PCA
 
