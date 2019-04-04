@@ -187,7 +187,7 @@ def base_HJM_projection(df):
 
 
     ''' QUESTION: Does this drift include all principal components?'''
-    hist_rates =np.matrix(fwd_cv[['six_m', 'one_y', 'two_y', 'three_y', 'five_y', 'seven_y','ten_y']])
+    hist_rates =np.matrix(df[['six_m', 'one_y', 'two_y', 'three_y', 'five_y', 'seven_y','ten_y']])
     curve_spot = np.array(hist_rates[-1,:].flatten())[0]
     # plt.plot(mc_tenors, curve_spot.transpose(), marker='.')
     # plt.ylabel('$f(t_0,T)$')
@@ -278,27 +278,39 @@ tenors = [0.5, 1, 2, 3, 5, 7, 10]
 mc_tenors = [0.5, 1, 2, 3, 5, 7, 10]
 # Looping through the CV data to create cross val data sets
 fcst_array = np.zeros(shape = (len(fwd_cv),len(tenors)))
+fcst_change = np.zeros(shape= (len(fwd_cv),len(tenors)))
 for i in range(len(fwd_cv)):
-    fwd_train = fwd_train.append(fwd_cv.iloc[i])
-    #print(fwd_train.tail())
+    # first we need to fit projections based on all data
+    # up to this point and then forecast a one day change
+    # in interest rates
+    projections = base_HJM_projection(fwd_train)
+    fcst_array[i,:] = projections[1,:]
+    fcst_change[i,:] = projections[1,:]- projections[0,:]
 
-    fcst_array[i,:] = base_HJM_projection(fwd_train)[1,:]
+    # then increment the model forward one period
+    fwd_train = fwd_train.append(fwd_cv.iloc[i])
 
 # now we have the fcst_array and can use this to compare to
-# the actual change in fwds
-actual_array = fwd_cv[['six_m', 'one_y', 'two_y',
-        'three_y', 'five_y', 'seven_y', "ten_y"]].as_matrix()
+# the actual change in fwds over time
+actual_change = fwd_cv[['d_six_m', 'd_one_y', 'd_two_y',
+        'd_three_y', 'd_five_y', 'd_seven_y', 'd_ten_y']].as_matrix()
 
-fcst_error = fcst_array - actual_array
-plt.hist(fcst_error[:,6], bins=25, normed="True")
-plt.show()
+fcst_error = fcst_change - actual_change
 
-plt.scatter(fcst_error[:,0], fcst_error[:,6])
-plt.show()
+# fcst_delta = np.diff(fcst_array, n=1)
+# actual_delta = np.diff(actual_arraym n=1)
+# delta_error= fcst_delta - actual_delta
 
-dict_out = {'fcst': fcst_array,
-            'actuals': actual_array,
+# plt.hist(fcst_error[:,6], bins=25, normed="True")
+# plt.show()
+
+# plt.scatter(fcst_error[:,0], fcst_error[:,6])
+# plt.show()
+
+dict_out = {'fcst_change': fcst_change,
+            'actual_change': actual_change,
             'fcst_error': fcst_error}
 pickle_out = open('../data/initial_fcst_error', 'wb')
 pickle.dump(dict_out, pickle_out)
 pickle_out.close()
+
