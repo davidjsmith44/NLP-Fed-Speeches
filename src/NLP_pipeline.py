@@ -145,7 +145,6 @@ def loop_through_dataframe(df, n_speeches):
 
 if __name__ == '__main__':
 
-
     # Mother of all import statements
     import string
     import numpy as np

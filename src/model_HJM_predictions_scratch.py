@@ -41,8 +41,6 @@ def model_HJM_projection(df, model_dict):
 
     test_fit = model.fit("MLE")
     test_fit.summary()
-    test_fit = model.fit("MLE")
-    test_fit.summary()
     oos_data = df.iloc[-1]
     oos_data['ed_last'] = 0
     oos_data['ed_avg_n'] = 0
@@ -52,7 +50,7 @@ def model_HJM_projection(df, model_dict):
     oos_data['shock2']= 0
     oos_data['shock3']= 0
 
-    prediction = model.predict(h = 10, oos_data, intervals=False)
+    prediction = model.predict(h = 1, oos_data, intervals=False)
 
     # END: old code for PCA
 

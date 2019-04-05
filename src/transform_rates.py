@@ -6,14 +6,14 @@ def zero_coupon_bond_price(par, ytm, time):
     return par / (1 + ytm/2) ** (time*2)
 
 
-    price = 100
-    par = 100
+    # price = 100
+    # par = 100
 
-    bond_prices_3M = zero_coupon_bond_price(par, X['three_m'], time=0.25)
-    bond_prices_6M = zero_coupon_bond_price(par, X['six_m'], time=0.5)
-    bond_prices_1YR = zero_coupon_bond_price(par, X['one_y'], time=1.0)
+    # bond_prices_3M = zero_coupon_bond_price(par, X['three_m'], time=0.25)
+    # bond_prices_6M = zero_coupon_bond_price(par, X['six_m'], time=0.5)
+    # bond_prices_1YR = zero_coupon_bond_price(par, X['one_y'], time=1.0)
 
-    return bond_prices_3M, bond_prices_6M, bond_prices_1YR
+    # return bond_prices_3M, bond_prices_6M, bond_prices_1YR
 
 # NOW USING LOOP TO BUILD SPOT RATES ONE AT A TIME
 # 2 year bond prices
