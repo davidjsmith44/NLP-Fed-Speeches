@@ -50,39 +50,72 @@ class ForecastModel(object):
 
         The predict_one method will take the fitted class and predict a one day forecast
         '''
-
-        self.target    = model_inputs['target']
-        self.model_type     = model_inputs['model_type']
         self.model_class    = model_inputs['model_class']
         self.model_name     = model_inputs['name']
-        self.num_components = model_inputs['num_components']
-        # extracing the model hyperparameters
-        hyper_params = model_inputs['hyper_params']
-        self.ar = hyper_params['ar']
-        self.ma = hyper_params['ma']
-        self.diff_order = hyper_params['diff_ord']
+        self.target         = model_inputs['target']
 
-             # This is the number of differences to run
-        self.formula = None   # This is the string for ARIMAX models that needs to be used
-        self.family = pf.Normal()    # for ARIMAX models this is pf.Normal()
-        self.model = None
+        if self.model_class == 'ARIMA':
+            self.model_type     = model_inputs['model_type']
+            hyper_params = model_inputs['hyper_params']
+            self.ar = hyper_params['ar']
+            self.ma = hyper_params['ma']
+            self.diff_order = hyper_params['diff_ord']
+            self.family = pf.Normal()
+            self.formula = None
+            self.num_components = None
+
+        elif self.model_class == 'ARIMAX':
+            self.model_type  = model_inputs['model_type']
+            hyper_params = model_inputs['hyper_params']
+            self.ar = hyper_params['ar']
+            self.ma = hyper_params['ma']
+            self.diff_order = hyper_params['diff_ord']
+            self.family = pf.Normal()
+            self.formula = model_inputs['formula']
+            self.num_components = None
+
+        else: # this will be gaussian and later PCA!
+            self.model_type     = None
+            self.ar = None
+            self.ma = None
+            self.diff_order = None
+            self.family = None
+            self.formula = None
+            self.num_components = None
+            self.formula = None   # This is the string for ARIMAX models that needs to be used
+
     def fit(self, X):
         '''
         Takes the model and initialized the time series object to it with the dataframe X
         Then fits the model using the dataframe X
         '''
-        model = self.model_type(data = X,
-            ar= self.ar,
-            ma= self.ma,
-            integ= self.diff_order,
-            #target = self.target)
-            target = self.target,
-            family=self.family)
+        if self.model_class == 'ARIMA':
+            model = self.model_type(data = X,
+                ar= self.ar,
+                ma= self.ma,
+                integ= self.diff_order,
+                target = self.target,
+                family=self.family)
+            model.fit('MLE')
+            # m = model.fit('MLE')
+            # m.summary()
+            self.model = model
 
-        model.fit('MLE')
-        #m.summary()
-        self.model = model
-        #model.predict(h=1, oos_data= fwd_train.iloc[-1])
+        elif self.model_class == 'ARIMAX':
+            model = self.model_type(data = X,
+                formula = self.formula,
+                ar= self.ar,
+                ma= self.ma,
+                integ= self.diff_order,
+                family=self.family)
+            model.fit('MLE')
+            # m = model.fit('MLE')
+            # m.summary()
+            self.model = model
+
+        else:  # The case where we have Gaussian model
+            model = np.mean(X[self.target])
+            self.model = model
 
     def predict_one(self, X):
         ''' This method predicts one day forward on the variables. It must first
@@ -93,14 +126,12 @@ class ForecastModel(object):
             return self.model.predict(h=1, intervals=False)
 
         elif self.model_class == 'ARIMAX':
-            oos_data = create_oos_data(X)
+            oos_data = self.create_oos_data(X)
             return self.model.predict(h=1, oos_data = oos_data)
-        else:
-            print("What type of model is this again?")
-            return None
-        #oos_data = create_oos_data(X)
-        #oos_data = X.iloc[[-1]]
-        #return self.model.predict(h=1, )
+
+        else:   # This is the Gaussian Model
+            # the gaussian self.model contains the mean change in the rate
+            return self.model
 
     def create_oos_data(self, X):
         '''This method build the data needed for a one period forecast and alters the

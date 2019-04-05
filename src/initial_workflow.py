@@ -303,21 +303,21 @@ model.predict(h=1, oos_data= fwd_train.iloc[-1])
 
 '''
 Need to include a dictionary that stores all of the results of the models
-'''
+# '''
 this_name = 'Normal ARIMA(1,1,1)'
 model_type = pf.ARIMA
 model_class = 'ARIMA'
-model_target= 'ten_y'
-hyper_params= {'ar':1, 'ma': 1, "diff_ord": 0, 'target':'ten_y'}
-num_components = 1
-forecast = np.zeros(shape=(len(fwd_cv),1))
-model_inputs = {'model_type': model_type,
-                'model_class': model_class,
-                'name': this_name,
-                'target': model_target,
-                'hyper_params': hyper_params,
-                'num_components': num_components,
-                'foreacst': forecast}
+model_target= 'd_ten_y'
+hyper_params= {'ar':1, 'ma': 1, "diff_ord": 0}
+# num_components = 1
+# forecast = np.zeros(shape=(len(fwd_cv),1))
+# model_inputs = {'model_type': model_type,
+#                 'model_class': model_class,
+#                 'name': this_name,
+#                 'target': model_target,
+#                 'hyper_params': hyper_params,
+#                 'num_components': num_components,
+#                 'foreacst': forecast}
 
 # create an instance of the model
 this_model = fc.ForecastModel(model_inputs)
@@ -332,8 +332,54 @@ reload(fc)
 
 this_model = fc.ForecastModel(model_inputs)
 
-
+# need to clear out the first row of the change in X
+#fwd_train = fwd_train.drop(fwd_train.index[0])
 
 #this_model.fit(fwd_train)
 this_model.fit(fwd_train)
 prediction = this_model.predict_one(fwd_train)
+
+
+
+
+### ARIMAX MODEL NOW
+this_name = 'Normal ARIMAX(1,0,1)'
+model_type = pf.ARIMAX
+model_class = 'ARIMAX'
+model_target= 'd_ten_y'
+hyper_params= {'ar':1, 'ma': 1, "diff_ord": 0}
+num_components = 1
+# forecast = np.zeros(shape=(len(fwd_cv),1))
+# model_inputs = {'model_type': model_type,
+#                 'model_class': model_class,
+#                 'name': this_name,
+#                 'target': model_target,
+#                 'hyper_params': hyper_params,
+#                 'num_components': num_components,
+#                 'formula':'d_ten_y~1+ed_last',
+#                 'foreacst': forecast}
+
+# create an instance of the model
+new_model = fc.ForecastModel(model_inputs)
+new_model.fit(fwd_train)
+prediction = new_model.predict_one(fwd_train)
+
+
+'''NEED TO TRY GAUSSIAN DISTRIBUTION TOO
+variables still in the dictionary
+    target
+    model_class
+
+'''
+
+g_this_name = 'Gaussian'
+g_model_class = 'Gaussian'
+g_model_target= 'd_ten_y'
+g_model_inputs = {'model_class': g_model_class,
+                'name': g_this_name,
+                'target': g_model_target}
+
+# create an instance of the model
+g_model = fc.ForecastModel(g_model_inputs)
+g_model.fit(fwd_train)
+prediction = g_model.predict_one(fwd_train)
