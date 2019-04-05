@@ -137,18 +137,12 @@ import pickle
 from ForecastModel import ForecastModel
 
 if __name__ == '__main__':
-    #os.chdir('..')
-    #X = pickle.load(open("../data/interest_rate_data", "rb" ))
+
     X_fwds = pickle.load(open('../data/forward_rates', 'rb'))
-    #X_zeros = pickle.load(open('../data/zero_rates', 'rb'))
-
-    # First difference the time series data for stationarity
-    #X = df_add_first_diff(X)
     X_fwds = df_add_first_diff(X_fwds)
-    #X_zeros = df_add_first_diff(X_zeros)
-
 
     #df_FX = pickle.load( open( "data/FX_data", "rb" ) )
+    # Loading up the federal reserve speech data
     fed_metrics = pickle.load( open( "../data/mvp_cosine_sim", "rb" ) )
     cos_last = fed_metrics['cos_last']
     cos_avg_n = fed_metrics['cos_avg_n']
@@ -156,9 +150,7 @@ if __name__ == '__main__':
     ed_avg_n = fed_metrics['ed_avg_n']
     fed_dates = fed_metrics['dates']
 
-
-
-    # USING THE PD MERGE BRANDON TAUGHT
+    #grouping by date (some dates had multiple speeches)
     avgstats = pd.DataFrame({'date':fed_dates,
                             'ed_last': ed_last,
                             'ed_avg_n': ed_avg_n,
@@ -166,18 +158,13 @@ if __name__ == '__main__':
                             'cos_avg_n': cos_avg_n}).groupby('date').mean()
     avgstats.index = pd.to_datetime(avgstats.index)
 
-    #X = X.merge(avgstats, how='left', left_index = True, right_index = True)
     X_fwds = X_fwds.merge(avgstats, how='left', left_index = True, right_index = True)
-    #X_zeros = X_zeros.merge(avgstats, how = 'left', left_index = True, right_index = True)
-
-    #X.fillna(value=0, inplace=True)
     X_fwds.fillna(value=0, inplace=True)
-    #X_zeros.fillna(value=0, inplace=True)
 
     # the first row of X_fwds contains zeros for the differenced rates, clear them here
     X_fwds = X_fwds.drop(X_fwds.index[0])
 
-    # cannot use train/test split on this because it is time series
+    # Creating training, cross-validation and test datasets
     total_obs = len(X_fwds)
     train_int = int(round(total_obs*.7, 0))
     cv_int = int(round(total_obs*.85, 0))
@@ -186,97 +173,99 @@ if __name__ == '__main__':
     fwd_cv = X_fwds[train_int:cv_int]
     fwd_test = X_fwds[cv_int:]
 
-    # zero_train = X_zeros[0:train_int]
-    # zero_cv = X_zeros[train_int:cv_int]
-    # zero_test = X_zeros[cv_int:]
+    forecast_matrix = np.zeros(shape=(len(fwd_cv), 7))
+    # Base models to be estimated
+    model_list= []
+    ''' ARIMA model'''
+    this_name = 'Normal ARIMA(1,1,1)'
+    model_type = pf.ARIMA
+    model_class = 'ARIMA'
+    model_target= 'd_ten_y'
+    hyper_params= {'ar':1, 'ma': 1, "diff_ord": 0}
+    num_components = 1
+    model_inputs = {'model_type': model_type,
+                    'model_class': model_class,
+                    'name': this_name,
+                    'target': model_target,
+                    'hyper_params': hyper_params,
+                    'num_components': num_components,
+                    'forecast': forecast_matrix}
+    model_list.append(model_inputs)
 
-    # X_train = X[0:train_int]
-    # X_cv = X[train_int:cv_int]
-    # X_test = X[cv_int:]
+    ''' ARMIAX model '''
+    this_name = 'Normal ARIMAX(1,0,1)'
+    model_type = pf.ARIMAX
+    model_class = 'ARIMAX'
+    model_target= 'd_ten_y'
+    hyper_params= {'ar':1, 'ma': 1, "diff_ord": 0}
+    num_components = 1
+    model_inputs = {'model_type': model_type,
+                    'model_class': model_class,
+                    'name': this_name,
+                    'target': model_target,
+                    'hyper_params': hyper_params,
+                    'num_components': num_components,
+                    'formula':'d_ten_y~1+ed_last',
+                    'forecast': forecast_matrix}
+    model_list.append(model_inputs)
 
+    ''' Gaussian Model '''
+    this_name = 'Gaussian'
+    model_class = 'Gaussian'
+    model_target= 'd_ten_y'
+    model_inputs = {'model_class': model_class,
+                    'name': this_name,
+                    'target': model_target,
+                    'forecast': forecast_matrix}
+    model_list.append(model_inputs)
 
+    # create the list of column names to go over
+    col_names = ['d_six_m', 'd_one_y', 'd_two_y', 'd_three_y', 'd_five_y', 'd_seven_y', 'd_ten_y']
 
+    # now that we have the basic models, we need to run these models for every forward rate and
+    # for all of the dates in the cv dataset
 
+    #for i in col_names:
+    i = 0
 
+    # adjust the models to reflect this particular forward
+    model_list[0]['target']=col_names[i] # ARIMA model
+    model_list[1]['target']= col_names[i] # ARIMAX model
+    model_list[2]['target']= col_names[i] # Gaussian
+    # adjust the patsy function for the arimax model
+    func_str = model_list[1]['formula']
+    func_list = func_str.split(sep='~')
+    model_list[1]['formula'] = col_names[i] + '~' + func_list[1]
 
+    #initialize the models
+    base_models = []
+    for m in model_list:
+        base_models.append(fc.ForecastModel(m))
 
-# NOTE: THIS DICTIONARY DOES NOT WORK HERE! The model is not defined
-# I am assigning something that is not yet defined
-dict_results = {'Model': model.model_name,
-              'hyperparams': hyper_params,
-              'forecast': forecasts}
+    # start the loop for the dates
+    for d in range(len(fwd_cv)):
+        # updating the time series by one day
+        X = update_cv_data(fwd_train, fwd_cv, d)
+        print(d)
 
-models = []
+        for j, m in enumerate(model_list):
 
-
-''' First ARIMAX model '''
-#NOTE: We need to store the formula for the ARIMA model in the hyper_params
-this_name = 'Normal ARIMAX(1,1,1)'
-hyper_params = {'ar': 1, 'ma':1, 'diff_ord':1, 'target': 'ten_y',
-                'formula':'ten_y~1+ed_last'}
-forecast = 0
-model_inputs = {'model_type': 'pf.ARIMAX',
-                'name': this_name,
-                'target_class': 'rates',
-                'hyper_params': hyper_params,
-                'foreacst': forecast}
-model_list.append(model_inputs)
-
-model_list = cross_validate_models(model_list, X_train, X_cv)
-
-
-''' BELOW WORKS '''
-#fwd_train = fwd_train.rename(columns = {'6 MO':'6MO', '1 YR': '1YR',
-# '2YR':'2YR', '3 YR':'3YR', '5 YR':'5YR', '7 YR':'7YR',
-#  '10YR':'ten_YR'})
- model = pf.ARIMAX(data = fwd_train,
-         formula = 'ten_y~1+ed_last',
-         ar=1,
-         ma=1,
-         integ=1,
-         family=pf.Normal())
-
-m = model.fit('MLE')
-m.summary()
-model.predict(h=1, oos_data= fwd_train.iloc[-1])
-
-
-col_names = ['d_six_m', 'd_one_y', 'd_two_y', 'd_three_y', 'd_five_y', 'd_seven_y', 'd_ten_y']
-
-# creating the loop over the models and the rates to estimate
-
-
-
-
-
-
-
-
-
-'''
-Need to include a dictionary that stores all of the results of the models
-# '''
-this_name = 'Normal ARIMA(1,1,1)'
-model_type = pf.ARIMA
-model_class = 'ARIMA'
-model_target= 'd_ten_y'
-hyper_params= {'ar':1, 'ma': 1, "diff_ord": 0}
-num_components = 1
-forecast = np.zeros(shape=(len(fwd_cv),1))
-model_inputs = {'model_type': model_type,
-                'model_class': model_class,
-                'name': this_name,
-                'target': model_target,
-                'hyper_params': hyper_params,
-                'num_components': num_components,
-                'foreacst': forecast}
-
-# create an instance of the model
-this_model = fc.ForecastModel(model_inputs)
+            this_model = base_models[j]
+            this_model.fit(X)
+            this_prediction = this_model.predict_one(X)
+            if type(this_prediction)== np.float64:
+                model_list[j]['forecast'][d,i]= this_prediction
+            else:
+                model_list[j]['forecast'][d,i] = this_prediction.iloc[0,0]
+            print(this_prediction)
 
 
-# NOTE: Must relaod a module
-#from importlib import reload
+
+
+
+
+
+
 
 import ForecastModel as fc
 # to relaod the foreacst model type below
