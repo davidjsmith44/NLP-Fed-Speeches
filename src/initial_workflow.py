@@ -202,16 +202,22 @@ X_train = X[0:train_int]
 X_cv = X[train_int:cv_int]
 X_test = X[cv_int:]
 
+from ForecastModel import ForecastModel
 
-dict_params = {'ar':1, 'ma': 1, "diff_ord": 1, 'target':'10 YR'}
+hyper_params = {'ar':1, 'ma': 1, "diff_ord": 1, 'target':'10 YR'}
 
-'''
-Need to include a dictionary that stores all of the results of the models
-'''
+## Working on building the out of sample forecast
+oos_data = fwd_cv.iloc[[-1]]
+
+
+
+
+
+
 # NOTE: THIS DICTIONARY DOES NOT WORK HERE! The model is not defined
 # I am assigning something that is not yet defined
 dict_results = {'Model': model.model_name,
-              'hyperparams': dict_params,
+              'hyperparams': hyper_params,
               'forecast': forecasts}
 
 models = []
@@ -234,13 +240,14 @@ Each entru in the list contains a dictionary with the following keys
 #Store relevant information in the models list
 model_list = []
 
-this_name = 'Normal ARIMA(1,1,1)'
-hyper_params= {'ar':1, 'ma': 1, "diff_ord": 1, 'target':'ten_y'}
+this_name = 'Normal ARIMA(1,0,1)'
+hyper_params= {'ar':1, 'ma': 1, "diff_ord": 0, 'target':'d_ten_y'}
 forecast = 0
-model_inputs = {'model_type': 'ARIMA'
+num_components = 1
+model_inputs = {'model_type': 'pf.ARIMA'
                 'name': this_name,
-                'target_class': 'rates'
                 'hyper_params': hyper_params,
+                'num_components': num_components
                 'foreacst': forecasts}
 
 this_name = 'Normal ARIMA(2,1,2)'
@@ -248,7 +255,6 @@ hyper_params= {'ar':2, 'ma': 2, "diff_ord": 1, 'target':'ten_y'}
 forecast = 0
 model_inputs = {'model_type': 'ARIMA',
                 'name': this_name,
-                'target_class': 'rates',
                 'hyper_params': hyper_params,
                 'foreacst': forecast}
 model_list.append(model_inputs)
@@ -259,7 +265,7 @@ this_name = 'Normal ARIMAX(1,1,1)'
 hyper_params = {'ar': 1, 'ma':1, 'diff_ord':1, 'target': 'ten_y',
                 'formula':'ten_y~1+ed_last'}
 forecast = 0
-model_inputs = {'model_type': 'ARIMAX',
+model_inputs = {'model_type': 'pf.ARIMAX',
                 'name': this_name,
                 'target_class': 'rates',
                 'hyper_params': hyper_params,
@@ -283,3 +289,51 @@ model_list = cross_validate_models(model_list, X_train, X_cv)
 m = model.fit('MLE')
 m.summary()
 model.predict(h=1, oos_data= fwd_train.iloc[-1])
+
+
+
+
+
+
+
+
+
+
+
+
+'''
+Need to include a dictionary that stores all of the results of the models
+'''
+this_name = 'Normal ARIMA(1,1,1)'
+model_type = pf.ARIMA
+model_class = 'ARIMA'
+model_target= 'ten_y'
+hyper_params= {'ar':1, 'ma': 1, "diff_ord": 0, 'target':'ten_y'}
+num_components = 1
+forecast = np.zeros(shape=(len(fwd_cv),1))
+model_inputs = {'model_type': model_type,
+                'model_class': model_class,
+                'name': this_name,
+                'target': model_target,
+                'hyper_params': hyper_params,
+                'num_components': num_components,
+                'foreacst': forecast}
+
+# create an instance of the model
+this_model = fc.ForecastModel(model_inputs)
+
+
+# NOTE: Must relaod a module
+from importlib import reload
+
+import ForecastModel as fc
+# to relaod the foreacst model type below
+reload(fc)
+
+this_model = fc.ForecastModel(model_inputs)
+
+
+
+#this_model.fit(fwd_train)
+this_model.fit(fwd_train)
+prediction = this_model.predict_one(fwd_train)
