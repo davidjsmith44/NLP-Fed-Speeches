@@ -134,12 +134,12 @@ import datetime as datetime
 import matplotlib.pyplot as plt
 import os
 import pickle
-from ForecastModel import ForecastModel
+import ForecastModel as fc
 
 if __name__ == '__main__':
 
     X_fwds = pickle.load(open('../data/forward_rates', 'rb'))
-    X_fwds = df_add_first_diff(X_fwds)
+    #X_fwds = df_add_first_diff(X_fwds)
 
     #df_FX = pickle.load( open( "data/FX_data", "rb" ) )
     # Loading up the federal reserve speech data
@@ -189,7 +189,7 @@ if __name__ == '__main__':
                     'target': model_target,
                     'hyper_params': hyper_params,
                     'num_components': num_components,
-                    'forecast': forecast_matrix}
+                    'forecast': np.copy(forecast_matrix)}
     model_list.append(model_inputs)
 
     ''' ARMIAX model '''
@@ -206,7 +206,7 @@ if __name__ == '__main__':
                     'hyper_params': hyper_params,
                     'num_components': num_components,
                     'formula':'d_ten_y~1+ed_last',
-                    'forecast': forecast_matrix}
+                    'forecast': np.copy(forecast_matrix)}
     model_list.append(model_inputs)
 
     ''' Gaussian Model '''
@@ -216,7 +216,7 @@ if __name__ == '__main__':
     model_inputs = {'model_class': model_class,
                     'name': this_name,
                     'target': model_target,
-                    'forecast': forecast_matrix}
+                    'forecast': np.copy(forecast_matrix)}
     model_list.append(model_inputs)
 
     # create the list of column names to go over
@@ -226,43 +226,51 @@ if __name__ == '__main__':
     # for all of the dates in the cv dataset
 
     #for i in col_names:
-    i = 0
+    this_rate = 1
 
     # adjust the models to reflect this particular forward
-    model_list[0]['target']=col_names[i] # ARIMA model
-    model_list[1]['target']= col_names[i] # ARIMAX model
-    model_list[2]['target']= col_names[i] # Gaussian
+    model_list[0]['target']=col_names[this_rate] # ARIMA model
+    model_list[1]['target']= col_names[this_rate] # ARIMAX model
+    model_list[2]['target']= col_names[this_rate] # Gaussian
     # adjust the patsy function for the arimax model
     func_str = model_list[1]['formula']
     func_list = func_str.split(sep='~')
-    model_list[1]['formula'] = col_names[i] + '~' + func_list[1]
+    model_list[1]['formula'] = col_names[this_rate] + '~' + func_list[1]
 
     #initialize the models
     base_models = []
-    for m in model_list:
-        base_models.append(fc.ForecastModel(m))
+    for model in model_list:
+        base_models.append(fc.ForecastModel(model))
 
     # start the loop for the dates
-    for d in range(len(fwd_cv)):
+    #for d in range(len(fwd_cv)):
+    for day_index in range(100):
         # updating the time series by one day
-        X = update_cv_data(fwd_train, fwd_cv, d)
-        print(d)
+        X = update_cv_data(fwd_train, fwd_cv, day_index)
+        #print('this is the day index', day_index)
 
-        for j, m in enumerate(model_list):
-
-            this_model = base_models[j]
+        for model_index, m in enumerate(model_list):
+            #print("Model index", model_index)
+            this_model = base_models[model_index]
             this_model.fit(X)
             this_prediction = this_model.predict_one(X)
+            #print("This is the prediction before the if statement", this_prediction)
+            #print('This prediction type is :', type(this_prediction))
+            #print(this_model.model_name)
             if type(this_prediction)== np.float64:
-                model_list[j]['forecast'][d,i]= this_prediction
+                #print('The prediction is type np.float64 and is assigned to below')
+                #print("Model_index: {0} :Day_index: {1}, : this_rate: {2}".format(model_index,day_index, this_rate))
+                model_list[model_index]['forecast'][day_index,this_rate]= this_prediction
+                #model_list[model_index]['forecast'][day_index,this_rate]= this_prediction
             else:
-                model_list[j]['forecast'][d,i] = this_prediction.iloc[0,0]
-            print(this_prediction)
-
-
-
-
-
+                #print('The prediction is type dataframe and is assigned to below')
+                #b =this_prediction.iloc[0,0]
+                #print("THIS IS THE PREDICTION AS A NUMBER TO BE ASSIGNED: ", b)
+                #print("Model_index: {0} :Day_index: {1}, : this_rate: {2}".format(model_index,day_index, this_rate))
+                model_list[model_index]['forecast'][day_index,this_rate] = this_prediction.iloc[0,0]
+                #model_list[model_index]['forecast'][day_index,this_rate] = this_prediction.iloc[0,0]
+                #print('BELOW IS ACTUALLY WHAT WAS ASSIGNED')
+                #print(model_list[model_index]['forecast'][day_index, this_rate])
 
 
 
