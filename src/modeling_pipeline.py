@@ -173,11 +173,16 @@ if __name__ == '__main__':
     fwd_cv = X_fwds[train_int:cv_int]
     fwd_test = X_fwds[cv_int:]
 
+    # saving the cross validation data set for reporting and charts later
+    pickle_out = open('../data/fwd_cv_data', 'wb')
+    pickle.dump(fwd_cv, pickle_out)
+    pickle_out.close()
+
     forecast_matrix = np.zeros(shape=(len(fwd_cv), 7))
     # Base models to be estimated
     model_list= []
     ''' ARIMA model'''
-    this_name = 'Normal ARIMA(1,1,1)'
+    this_name = 'Normal ARIMA(1,0,1)'
     model_type = pf.ARIMA
     model_class = 'ARIMA'
     model_target= 'd_ten_y'
@@ -263,22 +268,25 @@ if __name__ == '__main__':
                     model_list[model_index]['forecast'][day_index,this_rate] = this_prediction.iloc[0,0]
 
     #import ForecastModel as fc
-    # to relaod the foreacst model type below
-    #reload(fc)
-
+    # to relaod the foreacst model first load the following module
+    # from importlib import reload
+    # The type reload(fc)
+    # reload(fc)
     # below saves the output from these three models to a pickle file
-    pickle_out = open('initial_model_results', 'wb')
+    pickle_out = open('../data/initial_model_results', 'wb')
     pickle.dump(model_list, pickle_out)
     pickle_out.close()
 
-    # this_model = fc.ForecastModel(model_inputs)
+    X = fwd_cv[['d_six_m', 'd_one_y', 'd_two_y', 'd_three_y', 'd_five_y', 'd_seven_y', 'd_ten_y']].values
 
-    # need to clear out the first row of the change in X
-    #fwd_train = fwd_train.drop(fwd_train.index[0])
+    delta_list = []
 
-    #this_model.fit(fwd_train)
-    # this_model.fit(fwd_train)
-    # prediction = this_model.predict_one(fwd_train)
+    dist_0 = X - model_list[0]['forecast']
+    dist_1 = X - model_list[1]['forecast']
+    dist_2 = X - model_list[2]['forecast']
 
-    # create a list of the models
+    delta_list = [dist_0, dist_1, dist_2]
 
+    pickle_out = open('../data/initial_distrib', 'wb')
+    pickle.dump(delta_list, pickle_out)
+    pickle_out.close()
