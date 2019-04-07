@@ -226,67 +226,59 @@ if __name__ == '__main__':
     # for all of the dates in the cv dataset
 
     #for i in col_names:
-    this_rate = 1
+    for this_rate in range(len(col_names)):
+        print("Running model for ", col_names[this_rate])
 
-    # adjust the models to reflect this particular forward
-    model_list[0]['target']=col_names[this_rate] # ARIMA model
-    model_list[1]['target']= col_names[this_rate] # ARIMAX model
-    model_list[2]['target']= col_names[this_rate] # Gaussian
-    # adjust the patsy function for the arimax model
-    func_str = model_list[1]['formula']
-    func_list = func_str.split(sep='~')
-    model_list[1]['formula'] = col_names[this_rate] + '~' + func_list[1]
+        # adjust the models to reflect this particular forward
+        model_list[0]['target']=col_names[this_rate] # ARIMA model
+        model_list[1]['target']= col_names[this_rate] # ARIMAX model
+        model_list[2]['target']= col_names[this_rate] # Gaussian
+        # adjust the patsy function for the arimax model
+        func_str = model_list[1]['formula']
+        func_list = func_str.split(sep='~')
+        model_list[1]['formula'] = col_names[this_rate] + '~' + func_list[1]
 
-    #initialize the models
-    base_models = []
-    for model in model_list:
-        base_models.append(fc.ForecastModel(model))
+        #initialize the models
+        base_models = []
+        for model in model_list:
+            base_models.append(fc.ForecastModel(model))
 
-    # start the loop for the dates
-    #for d in range(len(fwd_cv)):
-    for day_index in range(100):
-        # updating the time series by one day
-        X = update_cv_data(fwd_train, fwd_cv, day_index)
-        #print('this is the day index', day_index)
+        # start the loop for the dates
+        #for d in range(len(fwd_cv)):
+        for day_index in range(len(fwd_cv)):
+            # basic print statment to know where we are in the process
+            if day_index % 2 == 0:
+                print('We are on day : ', day_index)
+            # updating the time series by one day
+            X = update_cv_data(fwd_train, fwd_cv, day_index)
 
-        for model_index, m in enumerate(model_list):
-            #print("Model index", model_index)
-            this_model = base_models[model_index]
-            this_model.fit(X)
-            this_prediction = this_model.predict_one(X)
-            #print("This is the prediction before the if statement", this_prediction)
-            #print('This prediction type is :', type(this_prediction))
-            #print(this_model.model_name)
-            if type(this_prediction)== np.float64:
-                #print('The prediction is type np.float64 and is assigned to below')
-                #print("Model_index: {0} :Day_index: {1}, : this_rate: {2}".format(model_index,day_index, this_rate))
-                model_list[model_index]['forecast'][day_index,this_rate]= this_prediction
-                #model_list[model_index]['forecast'][day_index,this_rate]= this_prediction
-            else:
-                #print('The prediction is type dataframe and is assigned to below')
-                #b =this_prediction.iloc[0,0]
-                #print("THIS IS THE PREDICTION AS A NUMBER TO BE ASSIGNED: ", b)
-                #print("Model_index: {0} :Day_index: {1}, : this_rate: {2}".format(model_index,day_index, this_rate))
-                model_list[model_index]['forecast'][day_index,this_rate] = this_prediction.iloc[0,0]
-                #model_list[model_index]['forecast'][day_index,this_rate] = this_prediction.iloc[0,0]
-                #print('BELOW IS ACTUALLY WHAT WAS ASSIGNED')
-                #print(model_list[model_index]['forecast'][day_index, this_rate])
+            for model_index, m in enumerate(model_list):
+                this_model = base_models[model_index]
+                this_model.fit(X)
+                this_prediction = this_model.predict_one(X)
+                if type(this_prediction)== np.float64:
+                    model_list[model_index]['forecast'][day_index,this_rate]= this_prediction
 
+                else:
+                    model_list[model_index]['forecast'][day_index,this_rate] = this_prediction.iloc[0,0]
 
+    #import ForecastModel as fc
+    # to relaod the foreacst model type below
+    #reload(fc)
 
+    # below saves the output from these three models to a pickle file
+    pickle_out = open('initial_model_results', 'wb')
+    pickle.dump(model_list, pickle_out)
+    pickle_out.close()
 
-import ForecastModel as fc
-# to relaod the foreacst model type below
-reload(fc)
+    # this_model = fc.ForecastModel(model_inputs)
 
-this_model = fc.ForecastModel(model_inputs)
+    # need to clear out the first row of the change in X
+    #fwd_train = fwd_train.drop(fwd_train.index[0])
 
-# need to clear out the first row of the change in X
-#fwd_train = fwd_train.drop(fwd_train.index[0])
+    #this_model.fit(fwd_train)
+    # this_model.fit(fwd_train)
+    # prediction = this_model.predict_one(fwd_train)
 
-#this_model.fit(fwd_train)
-this_model.fit(fwd_train)
-prediction = this_model.predict_one(fwd_train)
-
-# create a list of the models
+    # create a list of the models
 
