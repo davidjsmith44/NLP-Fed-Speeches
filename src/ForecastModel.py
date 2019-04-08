@@ -184,20 +184,49 @@ class ForecastModel(object):
 
         if self.target != 'PCA':
             if self.model_class == 'ARIMA':
-                return self.model.predict(h=1, intervals=False)
+                this_pred = self.model.predict(h=1, intervals=False)
+                return this_prediction.iloc[0,0]
+                #return self.model.predict(h=1, intervals=False)
 
             elif self.model_class == 'ARIMAX':
                 oos_data = self.create_oos_data(X)
-                return self.model.predict(h=1, oos_data = oos_data)
+                this_pred = self.model.predict(h=1, oos_data = oos_data)
+                return this_prediction.iloc[0,0]
+                #return self.model.predict(h=1, oos_data = oos_data)
 
             else:   # This is the Gaussian Model
                 # the gaussian self.model contains the mean change in the rate
                 return self.model
+
         # now handeling the PCA cases to predict one.
-
         else:
+            this_prediction = np.array(shape(1,7))
+            if self.model_class == 'ARIMA':
+                for i in len(self.model):
+                    # below is the prediciton for the shock
+                    this_shock = self.model.predict(h=1, intervals=False)
+                    this_shock += this_shock.iloc[0,0]
+                    this_impact = this_shock * self.components[i,:]
+                    this_prediction += this_impact
+                return this_prediction
 
+            elif self.model_class = 'ARIMAX':
+                for i in len(self.model):
+                    oos_data = self.create_oos_data(X)
+                    # below is the prediciton for the shock
+                    this_shock = self.model.predict(h=1, oos_data=oos_data)
+                    this_shock += this_shock.iloc[0,0]
+                    this_impact = this_shock * self.components[i,:]
+                    this_prediction += this_impact
+                return this_prediction
 
+            else:   #case where we have a Gaussian model
+                for i in len(self.model):
+                    # below is the prediciton for the shock
+                    this_shock = self.model[i]
+                    this_impact = this_shock * self.components[i,:]
+                    this_prediction += this_impact
+                return this_prediction
 
 
 

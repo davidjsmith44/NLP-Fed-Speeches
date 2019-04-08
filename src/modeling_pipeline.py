@@ -297,10 +297,11 @@ if __name__ == '__main__':
                     this_model = base_models[model_index]
                     this_model.fit(X)
                     this_prediction = this_model.predict_one(X)
-                    if type(this_prediction)== np.float64:
-                        model_list[model_index]['forecast'][day_index,this_rate]= this_prediction
-                    else:
-                        model_list[model_index]['forecast'][day_index,this_rate] = this_prediction.iloc[0,0]
+                    model_list[model_index]['forecast'][day_index,this_rate] = this_prediction
+                    #if type(this_prediction)== np.float64:
+                    #    model_list[model_index]['forecast'][day_index,this_rate]= this_prediction
+                    #else:
+                    #    model_list[model_index]['forecast'][day_index,this_rate] = this_prediction.iloc[0,0]
 
 
     ''' Here I need to create the loop that takes care of the PCA type models
