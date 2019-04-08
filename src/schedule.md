@@ -1,5 +1,21 @@
 Capstone Schedule
 
+
+April 8th list
+BIG PICTURE FOR ME TO BE HAPPY I DID A GOOD JOB
+1. Create PCA based models
+2. Add levels to the ARIMAX models
+3. Redo speeches to only include 'outlook' or economy speeches
+
+FOR THE PRESENTATION
+1. Some metric that describes how well these models perform
+    -could be overlapping ditributions
+    -means of each
+    -look at the coefficients of the model (possibly have these returned to the class when fit)
+2. Soundbites - Fed speeches will move the level of interest rates on avg XX based on how different they are
+3. Some demonstration of how different the speeches are from one to the other
+4. Better code for github (just clean this shit)
+
 APRIL 4th List
 1. Create the pipeline
     -starts with current training set

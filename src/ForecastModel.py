@@ -4,7 +4,7 @@ import numpy as np
 import math
 from collections import Counter
 import pyflux as pf
-
+from sklearn.decomposition import PCA
 
 class ForecastModel(object):
     ''' The forecast model includes all hpyerparameters of the class and methods to estimate forwards
@@ -53,6 +53,8 @@ class ForecastModel(object):
         self.model_class    = model_inputs['model_class']
         self.model_name     = model_inputs['name']
         self.target         = model_inputs['target']
+        self.dep_vars       = model_inputs['dep_vars']
+
 
         if self.model_class == 'ARIMA':
             self.model_type     = model_inputs['model_type']
@@ -62,7 +64,7 @@ class ForecastModel(object):
             self.diff_order = hyper_params['diff_ord']
             self.family = pf.Normal()
             self.formula = None
-            self.num_components = None
+            self.num_components = model_inputs['num_components']
 
         elif self.model_class == 'ARIMAX':
             self.model_type  = model_inputs['model_type']
@@ -72,66 +74,135 @@ class ForecastModel(object):
             self.diff_order = hyper_params['diff_ord']
             self.family = pf.Normal()
             self.formula = model_inputs['formula']
-            self.num_components = None
+            self.num_components = model_inputs['num_components']
+
 
         else: # this will be gaussian and later PCA!
-            self.model_type     = None
+            self.model_type  = None
             self.ar = None
             self.ma = None
             self.diff_order = None
             self.family = None
             self.formula = None
-            self.num_components = None
             self.formula = None   # This is the string for ARIMAX models that needs to be used
+            self.num_components = model_inputs['num_components']
 
     def fit(self, X):
         '''
         Takes the model and initialized the time series object to it with the dataframe X
         Then fits the model using the dataframe X
         '''
-        if self.model_class == 'ARIMA':
-            model = self.model_type(data = X,
-                ar= self.ar,
-                ma= self.ma,
-                integ= self.diff_order,
-                target = self.target,
-                family=self.family)
-            model.fit('MLE')
-            # m = model.fit('MLE')
-            # m.summary()
-            self.model = model
 
-        elif self.model_class == 'ARIMAX':
-            model = self.model_type(data = X,
-                formula = self.formula,
-                ar= self.ar,
-                ma= self.ma,
-                integ= self.diff_order,
-                family=self.family)
-            model.fit('MLE')
-            # m = model.fit('MLE')
-            # m.summary()
-            self.model = model
+        if self.target != 'PCA':
+            if self.model_class == 'ARIMA':
+                model = self.model_type(data = X,
+                    ar= self.ar,
+                    ma= self.ma,
+                    integ= self.diff_order,
+                    target = self.target,
+                    family=self.family)
+                model.fit('MLE')
+                # m = model.fit('MLE')
+                # m.summary()
+                self.model = model
 
-        else:  # The case where we have Gaussian model
-            model = np.mean(X[self.target])
-            self.model = model
+            elif self.model_class == 'ARIMAX':
+                model = self.model_type(data = X,
+                    formula = self.formula,
+                    ar= self.ar,
+                    ma= self.ma,
+                    integ= self.diff_order,
+                    family=self.family)
+                model.fit('MLE')
+                # m = model.fit('MLE')
+                # m.summary()
+                self.model = model
+
+            else:  # The case where we have Gaussian model
+                model = np.mean(X[self.target])
+                self.model = model
+
+        else:   # case where we have a PCA model
+                tenors = [0.5, 1, 2, 3, 5, 7, 10]
+                test = PCA(n_components = self.num_components, random_state=44)
+                test.fit(X_fwds[['d_six_m', 'd_one_y', 'd_two_y', 'd_three_y', 'd_five_y', 'd_seven_y', 'd_ten_y']])
+                # NEED TO STORE LATENT VARIABLES AND PERCENTAGE EXPLAINED
+                self.pca = test
+                self.pct_var_expl = test.explained_variance_ratio_
+                self.components = test.components_
+                self.shocks = test.fit_transform(X_fwds[['d_six_m', 'd_one_y', 'd_two_y', 'd_three_y', 'd_five_y', 'd_seven_y', 'd_ten_y']])
+
+                # need to fit three components to this so self.model is a list
+                self.model = []
+                if self.model_class == 'ARIMA':
+                    for i in range(len(self.num_components)):
+                        model = self.model_type(data = self.shocks(:,i),
+                            ar= self.ar,
+                            ma= self.ma,
+                            integ= self.diff_order,
+                            target = self.shocks(:,i),
+                            family=self.family)
+                        model.fit('MLE')
+                        # m = model.fit('MLE')
+                        # m.summary()
+                        self.model.append(model)
+
+                elif self.model_class == 'ARIMAX':
+                    # here we need to join X with the shocks one by one
+                    # based on the number of components
+                    for i in range(len(self.num_components)):
+                        X_arima = X.copy()
+                        X_arima['shock']=shocks[:,i]
+                        model['target'] = 'shock'
+                        func_str = model['formula']
+                        func_list = func_str.split(sep='~')
+                        self.formula = 'shock' + '~' + func_list[1]
+
+                        # NOTE: May need to adjust if I am using levels here!
+                        model = self.model_type(data = X_arima,
+                            formula = self.formula,
+                            ar= self.ar,
+                            ma= self.ma,
+                            integ= self.diff_order,
+                            family=self.family)
+                        model.fit('MLE')
+                        self.model.append(model)
+
+                else:  # The case where we have Gaussian model
+                    for i in range(len(self.num_components)):
+                        model = np.mean(X[self.shocks[:,i]])
+                        self.model.append(model)
+                    # need to transform the shocks
+                    # some plotting?
+                    # what do I need to store here to have everything I need
+
 
     def predict_one(self, X):
         ''' This method predicts one day forward on the variables. It must first
         call the create_oos_data() method to create a dataframe to be used for
         the forecast. '''
 
-        if self.model_class == 'ARIMA':
-            return self.model.predict(h=1, intervals=False)
+        if self.target != 'PCA':
+            if self.model_class == 'ARIMA':
+                return self.model.predict(h=1, intervals=False)
 
-        elif self.model_class == 'ARIMAX':
-            oos_data = self.create_oos_data(X)
-            return self.model.predict(h=1, oos_data = oos_data)
+            elif self.model_class == 'ARIMAX':
+                oos_data = self.create_oos_data(X)
+                return self.model.predict(h=1, oos_data = oos_data)
 
-        else:   # This is the Gaussian Model
-            # the gaussian self.model contains the mean change in the rate
-            return self.model
+            else:   # This is the Gaussian Model
+                # the gaussian self.model contains the mean change in the rate
+                return self.model
+        # now handeling the PCA cases to predict one.
+
+        else:
+
+
+
+
+
+
+
 
     def create_oos_data(self, X):
         '''This method build the data needed for a one period forecast and alters the

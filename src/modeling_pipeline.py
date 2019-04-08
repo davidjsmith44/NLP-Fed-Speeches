@@ -186,12 +186,14 @@ if __name__ == '__main__':
     model_type = pf.ARIMA
     model_class = 'ARIMA'
     model_target= 'd_ten_y'
+    model_dep_vars = 'None'
     hyper_params= {'ar':1, 'ma': 1, "diff_ord": 0}
-    num_components = 1
+    num_components = 3
     model_inputs = {'model_type': model_type,
                     'model_class': model_class,
                     'name': this_name,
                     'target': model_target,
+                    'dep_vars': model_dep_vars,
                     'hyper_params': hyper_params,
                     'num_components': num_components,
                     'forecast': np.copy(forecast_matrix)}
@@ -202,12 +204,14 @@ if __name__ == '__main__':
     model_type = pf.ARIMAX
     model_class = 'ARIMAX'
     model_target= 'd_ten_y'
+    model_dep_vars = 'ed_last'
     hyper_params= {'ar':1, 'ma': 1, "diff_ord": 0}
-    num_components = 1
+    num_components = 3
     model_inputs = {'model_type': model_type,
                     'model_class': model_class,
                     'name': this_name,
                     'target': model_target,
+                    'dep_vars': model_dep_vars,
                     'hyper_params': hyper_params,
                     'num_components': num_components,
                     'formula':'d_ten_y~1+ed_last',
@@ -218,11 +222,21 @@ if __name__ == '__main__':
     this_name = 'Gaussian'
     model_class = 'Gaussian'
     model_target= 'd_ten_y'
+    model_dep_vars = 'None'
+    num_components = 3
     model_inputs = {'model_class': model_class,
                     'name': this_name,
                     'target': model_target,
+                    'dep_vars': model_dep_vars,
+                    'num_components': num_components
                     'forecast': np.copy(forecast_matrix)}
     model_list.append(model_inputs)
+
+    ''' Adding PCA versions of the models above'''
+    for model in model_list:
+        this_model = model.copy()
+        this_model['model_target']='PCA'
+        model_list.append(this_model)
 
     # create the list of column names to go over
     col_names = ['d_six_m', 'd_one_y', 'd_two_y', 'd_three_y', 'd_five_y', 'd_seven_y', 'd_ten_y']
@@ -235,13 +249,21 @@ if __name__ == '__main__':
         print("Running model for ", col_names[this_rate])
 
         # adjust the models to reflect this particular forward
-        model_list[0]['target']=col_names[this_rate] # ARIMA model
-        model_list[1]['target']= col_names[this_rate] # ARIMAX model
-        model_list[2]['target']= col_names[this_rate] # Gaussian
-        # adjust the patsy function for the arimax model
-        func_str = model_list[1]['formula']
-        func_list = func_str.split(sep='~')
-        model_list[1]['formula'] = col_names[this_rate] + '~' + func_list[1]
+        ''' possibly change this to be a function of the model itself '''
+        for model in model_list:
+            # The PCA based models use the entire term structure. For the models that
+            # estimate each spot rate seperatelly, we need to reassign the target variables
+            if model['model_target'] != 'PCA':
+                # the arimax model needs to have the 'patsy' function adjusted
+                if model['model_name'] == 'ARIMAX':
+                    model['target'] = col_names[this_rate]
+                    func_str = model['formula']
+                    func_list = func_str.split(sep='~')
+                    model['formula'] = col_names[this_rate] + '~' + func_list[1]
+                    # NOTE: May need to adjust if I am using levels here!
+
+                else:
+                    model['target']= col_names[this_rate] # ARIMAX model
 
         #initialize the models
         base_models = []
@@ -258,15 +280,40 @@ if __name__ == '__main__':
             X = update_cv_data(fwd_train, fwd_cv, day_index)
 
             for model_index, m in enumerate(model_list):
-                this_model = base_models[model_index]
-                this_model.fit(X)
-                this_prediction = this_model.predict_one(X)
-                if type(this_prediction)== np.float64:
-                    model_list[model_index]['forecast'][day_index,this_rate]= this_prediction
+                # need an if statement here to have PCA based models only fit once
+                if m['target'] == 'PCA':
+                    # only fit if on the first interest rate
+                    if this_rate == 'd_six_m':
+                        this_model = base_models[model_index]
+                        this_model.fit(X)
+                        this_prediction = this_model.predict_one(X)
+                        if type(this_prediction)== np.float64:
+                            model_list[model_index]['forecast'][day_index,this_rate]= this_prediction
+                        else:
+                            model_list[model_index]['forecast'][day_index,this_rate] = this_prediction.iloc[0,0]
 
+                # below is the case where we are NOT fitting a PCA model
                 else:
-                    model_list[model_index]['forecast'][day_index,this_rate] = this_prediction.iloc[0,0]
+                    this_model = base_models[model_index]
+                    this_model.fit(X)
+                    this_prediction = this_model.predict_one(X)
+                    if type(this_prediction)== np.float64:
+                        model_list[model_index]['forecast'][day_index,this_rate]= this_prediction
+                    else:
+                        model_list[model_index]['forecast'][day_index,this_rate] = this_prediction.iloc[0,0]
 
+
+    ''' Here I need to create the loop that takes care of the PCA type models
+    These are different because we do not loop over every individual rate but use them all
+        -pca and mean levels (Gaussian Version)
+        -PCA with ARIMA
+        -PCA with ARIMAX
+            -base speeches
+            -level of interest rates
+        -need the loop above to only fit the PCA classes once
+    THAT IS ALL I NEED TO DO
+
+    '''
     #import ForecastModel as fc
     # to relaod the foreacst model first load the following module
     # from importlib import reload
