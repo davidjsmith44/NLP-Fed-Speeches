@@ -54,7 +54,9 @@ class ForecastModel(object):
         self.model_name     = model_inputs['name']
         self.target         = model_inputs['target']
         self.dep_vars       = model_inputs['dep_vars']
-
+        self.pca            = None
+        self.components     = None
+        self.shocks         = None
 
         if self.model_class == 'ARIMA':
             self.model_type     = model_inputs['model_type']
@@ -77,7 +79,7 @@ class ForecastModel(object):
             self.num_components = model_inputs['num_components']
 
 
-        else: # this will be gaussian and later PCA!
+        else: # this will be gaussian
             self.model_type  = None
             self.ar = None
             self.ma = None
@@ -125,22 +127,23 @@ class ForecastModel(object):
         else:   # case where we have a PCA model
                 tenors = [0.5, 1, 2, 3, 5, 7, 10]
                 test = PCA(n_components = self.num_components, random_state=44)
-                test.fit(X_fwds[['d_six_m', 'd_one_y', 'd_two_y', 'd_three_y', 'd_five_y', 'd_seven_y', 'd_ten_y']])
+                test.fit(X[['d_six_m', 'd_one_y', 'd_two_y', 'd_three_y', 'd_five_y', 'd_seven_y', 'd_ten_y']])
                 # NEED TO STORE LATENT VARIABLES AND PERCENTAGE EXPLAINED
                 self.pca = test
                 self.pct_var_expl = test.explained_variance_ratio_
                 self.components = test.components_
-                self.shocks = test.fit_transform(X_fwds[['d_six_m', 'd_one_y', 'd_two_y', 'd_three_y', 'd_five_y', 'd_seven_y', 'd_ten_y']])
-
+                shocks = test.fit_transform(X[['d_six_m', 'd_one_y', 'd_two_y', 'd_three_y', 'd_five_y', 'd_seven_y', 'd_ten_y']])
+                self.shocks = shocks
+                #print('BELOW ARE THE SHOCKS: ',shocks)
                 # need to fit three components to this so self.model is a list
                 self.model = []
                 if self.model_class == 'ARIMA':
-                    for i in range(len(self.num_components)):
-                        model = self.model_type(data = self.shocks(:,i),
+                    for i in range(self.num_components):
+                        model = self.model_type(data = self.shocks[:,i],
                             ar= self.ar,
                             ma= self.ma,
                             integ= self.diff_order,
-                            target = self.shocks(:,i),
+                            target = self.shocks[:,i],
                             family=self.family)
                         model.fit('MLE')
                         # m = model.fit('MLE')
@@ -150,11 +153,11 @@ class ForecastModel(object):
                 elif self.model_class == 'ARIMAX':
                     # here we need to join X with the shocks one by one
                     # based on the number of components
-                    for i in range(len(self.num_components)):
+                    for i in range(self.num_components):
                         X_arima = X.copy()
                         X_arima['shock']=shocks[:,i]
-                        model['target'] = 'shock'
-                        func_str = model['formula']
+                        #model['target'] = 'shock'
+                        func_str = self.formula
                         func_list = func_str.split(sep='~')
                         self.formula = 'shock' + '~' + func_list[1]
 
@@ -169,9 +172,10 @@ class ForecastModel(object):
                         self.model.append(model)
 
                 else:  # The case where we have Gaussian model
-                    for i in range(len(self.num_components)):
-                        model = np.mean(X[self.shocks[:,i]])
-                        self.model.append(model)
+                    #for i in range(self.num_components):
+                    #    model = np.mean(X[self.shocks[:,i]], axis=0)
+                    #    self.model.append(model)
+                    self.model = np.mean(self.shocks, axis = 0)
                     # need to transform the shocks
                     # some plotting?
                     # what do I need to store here to have everything I need
@@ -185,13 +189,13 @@ class ForecastModel(object):
         if self.target != 'PCA':
             if self.model_class == 'ARIMA':
                 this_pred = self.model.predict(h=1, intervals=False)
-                return this_prediction.iloc[0,0]
+                return this_pred.iloc[0,0]
                 #return self.model.predict(h=1, intervals=False)
 
             elif self.model_class == 'ARIMAX':
                 oos_data = self.create_oos_data(X)
                 this_pred = self.model.predict(h=1, oos_data = oos_data)
-                return this_prediction.iloc[0,0]
+                return this_pred.iloc[0,0]
                 #return self.model.predict(h=1, oos_data = oos_data)
 
             else:   # This is the Gaussian Model
@@ -200,34 +204,39 @@ class ForecastModel(object):
 
         # now handeling the PCA cases to predict one.
         else:
-            this_prediction = np.array(shape(1,7))
+            this_prediction = np.zeros(shape=(1,7))
             if self.model_class == 'ARIMA':
-                for i in len(self.model):
+                for i in range(self.num_components):
                     # below is the prediciton for the shock
-                    this_shock = self.model.predict(h=1, intervals=False)
-                    this_shock += this_shock.iloc[0,0]
+                    this_shock = self.model[i].predict(h=1, intervals=False)
+                    #print('in pca model with shocks')
+                    #print('this is shock i: ', this_shock)
+                    this_shock = this_shock.iloc[0,0]
                     this_impact = this_shock * self.components[i,:]
                     this_prediction += this_impact
                 return this_prediction
 
-            elif self.model_class = 'ARIMAX':
-                for i in len(self.model):
-                    oos_data = self.create_oos_data(X)
+            elif self.model_class == 'ARIMAX':
+                for i in range(self.num_components):
+                    X_arima = X.copy()
+                    X_arima['shock']=self.shocks[:,i]
+                    oos_data = self.create_oos_data(X_arima)
                     # below is the prediciton for the shock
-                    this_shock = self.model.predict(h=1, oos_data=oos_data)
-                    this_shock += this_shock.iloc[0,0]
+                    this_shock = self.model[i].predict(h=1, oos_data=oos_data)
+                    this_shock = this_shock.iloc[0,0]
+                    print('here is the shock for ARIMAX', this_shock)
+                    print('here are the ARIMAX components', self.components)
                     this_impact = this_shock * self.components[i,:]
                     this_prediction += this_impact
                 return this_prediction
 
             else:   #case where we have a Gaussian model
-                for i in len(self.model):
+                for i in range(self.num_components):
                     # below is the prediciton for the shock
                     this_shock = self.model[i]
                     this_impact = this_shock * self.components[i,:]
                     this_prediction += this_impact
                 return this_prediction
-
 
 
 

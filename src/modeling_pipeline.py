@@ -228,15 +228,69 @@ if __name__ == '__main__':
                     'name': this_name,
                     'target': model_target,
                     'dep_vars': model_dep_vars,
-                    'num_components': num_components
+                    'num_components': num_components,
+                    'forecast': np.copy(forecast_matrix)}
+    model_list.append(model_inputs)
+    '''BELOW ARE THE PCA MODELS'''
+    ''' ARIMA model'''
+    this_name = 'Normal ARIMA(1,0,1)'
+    model_type = pf.ARIMA
+    model_class = 'ARIMA'
+    model_target= 'PCA'
+    model_dep_vars = 'None'
+    hyper_params= {'ar':1, 'ma': 1, "diff_ord": 0}
+    num_components = 3
+    model_inputs = {'model_type': model_type,
+                    'model_class': model_class,
+                    'name': this_name,
+                    'target': model_target,
+                    'dep_vars': model_dep_vars,
+                    'hyper_params': hyper_params,
+                    'num_components': num_components,
                     'forecast': np.copy(forecast_matrix)}
     model_list.append(model_inputs)
 
+    ''' ARMIAX model '''
+    this_name = 'Normal ARIMAX(1,0,1)'
+    model_type = pf.ARIMAX
+    model_class = 'ARIMAX'
+    model_target= 'PCA'
+    model_dep_vars = 'ed_last'
+    hyper_params= {'ar':1, 'ma': 1, "diff_ord": 0}
+    num_components = 3
+    model_inputs = {'model_type': model_type,
+                    'model_class': model_class,
+                    'name': this_name,
+                    'target': model_target,
+                    'dep_vars': model_dep_vars,
+                    'hyper_params': hyper_params,
+                    'num_components': num_components,
+                    'formula':'d_ten_y~1+ed_last',
+                    'forecast': np.copy(forecast_matrix)}
+    model_list.append(model_inputs)
+
+    ''' Gaussian Model '''
+    this_name = 'Gaussian'
+    model_class = 'Gaussian'
+    model_target= 'PCA'
+    model_dep_vars = 'None'
+    num_components = 3
+    model_inputs = {'model_class': model_class,
+                    'name': this_name,
+                    'target': model_target,
+                    'dep_vars': model_dep_vars,
+                    'num_components': num_components,
+                    'forecast': np.copy(forecast_matrix)}
+    model_list.append(model_inputs)
+
+
+
+
     ''' Adding PCA versions of the models above'''
-    for model in model_list:
-        this_model = model.copy()
-        this_model['model_target']='PCA'
-        model_list.append(this_model)
+    # for model in model_list:
+    #     this_model = model.copy()
+    #     this_model['model_target']='PCA'
+    #     model_list.append(this_model)
 
     # create the list of column names to go over
     col_names = ['d_six_m', 'd_one_y', 'd_two_y', 'd_three_y', 'd_five_y', 'd_seven_y', 'd_ten_y']
@@ -245,6 +299,7 @@ if __name__ == '__main__':
     # for all of the dates in the cv dataset
 
     #for i in col_names:
+
     for this_rate in range(len(col_names)):
         print("Running model for ", col_names[this_rate])
 
@@ -253,9 +308,9 @@ if __name__ == '__main__':
         for model in model_list:
             # The PCA based models use the entire term structure. For the models that
             # estimate each spot rate seperatelly, we need to reassign the target variables
-            if model['model_target'] != 'PCA':
+            if model['target'] != 'PCA':
                 # the arimax model needs to have the 'patsy' function adjusted
-                if model['model_name'] == 'ARIMAX':
+                if model['model_class'] == 'ARIMAX':
                     model['target'] = col_names[this_rate]
                     func_str = model['formula']
                     func_list = func_str.split(sep='~')
@@ -273,6 +328,7 @@ if __name__ == '__main__':
         # start the loop for the dates
         #for d in range(len(fwd_cv)):
         for day_index in range(len(fwd_cv)):
+        #for day_index in range(10):
             # basic print statment to know where we are in the process
             if day_index % 2 == 0:
                 print('We are on day : ', day_index)
@@ -283,14 +339,20 @@ if __name__ == '__main__':
                 # need an if statement here to have PCA based models only fit once
                 if m['target'] == 'PCA':
                     # only fit if on the first interest rate
-                    if this_rate == 'd_six_m':
+                    print("This is the current pca model", m)
+                    print("this is the this_rate variable", this_rate)
+                    if this_rate == 0:
                         this_model = base_models[model_index]
                         this_model.fit(X)
+                        print("here is some numbers ")
                         this_prediction = this_model.predict_one(X)
-                        if type(this_prediction)== np.float64:
-                            model_list[model_index]['forecast'][day_index,this_rate]= this_prediction
-                        else:
-                            model_list[model_index]['forecast'][day_index,this_rate] = this_prediction.iloc[0,0]
+                        #if type(this_prediction)== np.float64:
+                            #model_list[model_index]['forecast'][day_index,:]= this_prediction
+                        model_list[model_index]['forecast'][day_index,:]= this_prediction
+                        # else:
+                        #     print(" here is the type of the prediction", type(this_prediction))
+                        #     print('this prediction', this_prediction)
+                        #     model_list[model_index]['forecast'][day_index,:] = this_prediction
 
                 # below is the case where we are NOT fitting a PCA model
                 else:
@@ -321,7 +383,7 @@ if __name__ == '__main__':
     # The type reload(fc)
     # reload(fc)
     # below saves the output from these three models to a pickle file
-    pickle_out = open('../data/initial_model_results', 'wb')
+    pickle_out = open('../data/Tuesday_model_results', 'wb')
     pickle.dump(model_list, pickle_out)
     pickle_out.close()
 
@@ -332,9 +394,12 @@ if __name__ == '__main__':
     dist_0 = X - model_list[0]['forecast']
     dist_1 = X - model_list[1]['forecast']
     dist_2 = X - model_list[2]['forecast']
+    dist_3 = X - model_list[3]['forecast']
+    dist_4 = X - model_list[4]['forecast']
+    dist_5 = X - model_list[5]['forecast']
 
-    delta_list = [dist_0, dist_1, dist_2]
+    delta_list = [dist_0, dist_1, dist_2, dist_3, dist_4, dist_5]
 
-    pickle_out = open('../data/initial_distrib', 'wb')
+    pickle_out = open('../data/Tuesday_distrib', 'wb')
     pickle.dump(delta_list, pickle_out)
     pickle_out.close()

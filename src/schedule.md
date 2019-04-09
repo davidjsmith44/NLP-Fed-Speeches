@@ -1,13 +1,18 @@
-Capstone Schedule
+
+April 9th last day
+1. Use federal resereve policy statements and scrape the new web page
+2. Shorten the time horizon
+3. Make a tail for the model (only estimate X days past)
+4. redo for ARIMAX
+5. work on presentation
 
 
-April 8th list
-BIG PICTURE FOR ME TO BE HAPPY I DID A GOOD JOB
-1. Create PCA based models
+
+1. Create PCA based models                                                               
 2. Add levels to the ARIMAX models
 3. Redo speeches to only include 'outlook' or economy speeches
-
-FOR THE PRESENTATION
+ 
+FOR THE PRESENTATION 
 1. Some metric that describes how well these models perform
     -could be overlapping ditributions
     -means of each
