@@ -117,7 +117,7 @@ def loop_through_dataframe(df, n_speeches):
     ts_ed_avg_n = np.zeros((len(unique_dates),1))
 
     #for i in range(len(df)- n_speeches):
-    for i in range(len(unique_dates)- 50):
+    for i in range(len(unique_dates)- n_speeches):
         print(i)
         this_date = df['date'][i]
         h_df, n_df = create_speech_dfs(df, this_date, n_speeches)
@@ -168,20 +168,20 @@ if __name__ == '__main__':
     # Importing all of the Fed Speeches
     import pickle
     #df = pickle.load( open( "../data/all_fed_speeches", "rb" ) )
-    df = pickle.load( open( "../data/mvp_fed_speeches", "rb" ) )
+    df = pickle.load( open( "mvp_fed_press_rel", "rb" ) )
     df.info()
 
     # Filtering speeches that only contain the words 'Policy', 'Outlook' and 'Balance Sheet'
-    bs = df[df['title'].str.contains('Balance Sheet')]
-    index_bs = set(bs.index)
-    pol = df[df['title'].str.contains('Policy')]
-    index_pol = set(pol.index)
-    out = df[df['title'].str.contains('Outlook')]
-    index_out = set(out.index)
+    # bs = df[df['title'].str.contains('Balance Sheet')]
+    # index_bs = set(bs.index)
+    # pol = df[df['title'].str.contains('Policy')]
+    # index_pol = set(pol.index)
+    # out = df[df['title'].str.contains('Outlook')]
+    # index_out = set(out.index)
 
-    all_index = index_bs | index_pol | index_out
-    list_index = list(all_index)
-    df = df.loc[list_index]
+    #all_index = index_bs | index_pol | index_out
+    #list_index = list(all_index)
+    #df = df.loc[list_index]
     df.sort_values(by=['date'], ascending = False, inplace = True)
     df.reset_index(drop=True, inplace=True)
 
@@ -220,7 +220,7 @@ if __name__ == '__main__':
                     'ed_avg_n': ts_ed_avg_n,
                     'dates': ts_dates}
     #pickle_out = open('data/ts_cosine_sim', 'wb')
-    pickle_out = open('../data/final_speech_dist', 'wb')
+    pickle_out = open('../data/final_press_rel_dist', 'wb')
     #pickle.dump([ts_cos_last, ts_cos_avg_n, ts_dates], pickle_out)
     pickle.dump(speech_dict, pickle_out)
     pickle_out.close()

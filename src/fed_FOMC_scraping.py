@@ -21,54 +21,6 @@ to the path to the text file. For example:
 
 '''
 
-# def create_url_list(start_year, end_year, prefix, suffix):
-    '''
-    The Federal Reserve has a seperate web site for each year that contains links
-    to the speeches made during that year. This function creates the list of
-    the paths to the web sites where the speeches are stored.
-
-    INPUTS:
-        start_year  an int containing the first year of speeches to pull
-                    (start_year >= 2006)
-        end_year    an int containing the final year of speeches to pull
-                    (we would expect this to be the current year)
-        prefix      a string containing the first part of the path to the speechs
-        suffix      a string containing the second part of the path to speeches
-
-    OUTPUT:
-        annual_htm_list     which contains the path to the web sites containing
-                            speeches for each year
-
-    NOTES:
-        1. The prefix does not include the host. The host is 'www.federalreserve.gov'
-        2. The prefix has changed over time. Before 2011, the suffix was 'speech.htm'
-            but this was changes to '-speeches.htm'
-        3. This function only works from 2006 onward. Before that time period the Fed
-            stored their speeches in a slightly different format
-
-    EXAMPLE:
-        Calling this function with
-            start_year = 2014
-            end_year = 2019
-            prefix = '/newsevents/speech/'
-            suffix = '-speeches.htm'
-        Returns the list of stings below
-            ['/newsevents/speech/2016-speeches.htm',
-            '/newsevents/speech/2017-speeches.htm',
-            '/newsevents/speech/2018-speeches.htm',
-            '/newsevents/speech/2019-speeches.htm']
-    '''
-    # annual_htm_list = []
-    # for x in range(start_year, end_year+1):
-    #     if x <=2010:
-    #         this_suffix = 'speech.htm'
-    #         mid_str=str(x)
-    #         annual_htm_list.append(prefix + mid_str + this_suffix)
-    #     else:
-    #         mid_str = str(x)
-    #         annual_htm_list.append(prefix + mid_str + suffix)
-    # return annual_htm_list
-
 def find_all_press_releases(host, this_url, print_test=False):
     '''
     Takes the host and a url to the FOMC web site for monetary policy press releases
@@ -96,8 +48,8 @@ def find_all_press_releases(host, this_url, print_test=False):
         soup=BeautifulSoup(body, 'html.parser')
         event_list = soup.find('div', id='article')
         # creating the list of dates, titles, speakers and html articles from web page
-
-        for link in event_list.findAll('a', href=True)
+        link_list = []
+        for link in event_list.findAll('a', href=True):
             link_list.append(link.get('href'))
 
         # now we need to clean the link_list to remove pdf versions of the statements
@@ -105,105 +57,75 @@ def find_all_press_releases(host, this_url, print_test=False):
         keep_these = []
         for i in range(len(link_list)):
             this_href = link_list[i]
-            if 'newsevents/pressreleases/' in this_href:
+            if 'newsevents/pressreleases/monetary' in this_href:
+                keep_these.append(i)
+
+        htm_links = []
+        for item in keep_these:
+            htm_links.append(link_list[item])
+
+        # the Federeal Resereve web site contains multiple html links on each date. I am interested in the
+        # policy statement only, which is kept as a date reference then 'a.ht,'
+        # Filtering non-statements out
+        keep_these = []
+        for i in range(len(htm_links)):
+            this_href = htm_links[i]
+            if 'a.htm' in this_href:
                 keep_these.append(i)
 
         final_links = []
         for item in keep_these:
-            final_links.append(link_list[item])
-
+            final_links.append(htm_links[item])
 
         return final_links
 
-def create_speech_df(host, annual_htm_list):
+def create_speech_df(date_list, doc_list):
     '''
-    Builds a dataframe containing information and links to all of the
-    Federal Reserve speeches. This dataframe is later called to scrape the
-    actual speeches
-
+    Creates dataframe containing from the date_list and doc_list
+    of the Federal Open Market Committee press releases.
+    This gets called after the 'find_all_press_releases' and 'retrieve_docs'
+    functions have been called
     INPUTS:
-        host                the host (for the Federal Reserve 'www.federalreserve.gov)
-        annual_htm_list     which contains the path to the web sites containing
-                             speeches for each year
+        date_list       The dates of the FOMC speeches
+        doc_list        The list of press release content
 
     OUTPUT:
         df    a dateframe containing the following columns
-            ['date]         date of speech
-            ['speaker']     speaker
-            ['title']       title of speech
-            ['link']        link to website with speech text to be scraped
-            ['text']        empty column to be populated later with text
+            ['date]         date of press release
+            ['text']        press release content
 
-    NOTES:
-        1. There are two items from 2006 to present that are on the Federal Reserve
-            website that are not speeches but reports. These items are removed in this
-            function by idenfitying dataframe rows where the speaker is blank
 
     '''
-    all_dates = []
-    all_speakers = []
-    all_titles = []
-    all_links = []
-    for item in annual_htm_list:
-        date_lst, speaker_lst, title_lst, link_lst =find_speeches_by_year(host,
-                                                    item, print_test=False)
-        all_dates = all_dates + date_lst
-        all_speakers = all_speakers + speaker_lst
-        all_titles = all_titles + title_lst
-        all_links = all_links + link_lst
-
-    dict1 = {'date': all_dates, 'speaker':all_speakers,
-            'title': all_titles, 'link':all_links}
-    df = pd.DataFrame.from_dict(dict1)
-    #Cleaning up some of the dateframe elemenst to remove brackets
-    df['date']=df['date'].str[0]
-    #df['date'] = pd.to_datetime(df['date'])
-    df['speaker']=df['speaker'].str[0]
-    df['title']=df['title'].str[0]
-    # creating empty column for documents
-    doc = np.zeros_like(df['date'])
-    df['text'] = doc
-
-    # removing items that are not speeches. These contain a link that starts with '/pubs/feds'
-    delete_these = df[df['link'].str.match('/pubs/feds')].index
-    df = df.drop(delete_these)
-
-    # now we need to sort the dataframe so that the most recent period is first
-    df.sort_values(by=['date'], ascending = False, inplace = True)
-    df.reset_index(drop=True, inplace=True)
-
-    # convert the dates to datetime objects for later
-    #df['date']=pd.to_datetime(df['date'])
-
-    # sorting the dataframe and resetting the index
-    #df.sort_values(by=['date'], ascending=False, inplace=True)
-    #df.reset_index(drop=True, inplace=True)
+    date_df = pd.to_datetime(date_list)
+    df_dict = {'date':date_df, 'text':doc_list}
+    df = pd.DataFrame(df_dict)
 
     return df
 
-def retrieve_docs(host, df):
+def retrieve_docs(host, link_list):
     '''
     This function takes a dataframe with the columns 'link' and 'text' and the host to
     the paths contained in the link column. The original dataframe is returned with
     the text of the scrapped speeches in the 'text' column as a string
 
     INPUTS:
-        host    the host to the Federal Reserve
-        df      a dataframe containing the column 'link' which contains all of the
-                speech paths to be scrapped
-                the dataframe should also contain a blank column 'text' that gets
-                populated in this funciton
+        host          the host to the Federal Reserve
+        link_list     a list 'link' which contains all of the speech paths to be scrapped.
 
     OUTPUTS:
-        df      the original dataframe is returned with the column 'text' populated
+        doc_list      the original dataframe is returned with the column 'text' populated
                 with the text from the speeches
+        doc_date
     '''
-    for index, row in df.iterrows():
-        this_item = df['link'][index]
-        print('Scraping text for documents #: ', index)
-        doc = get_one_doc(host, this_item)
-        df['text'][index] = doc
-    return df
+    doc_list = []
+    date_list = []
+    for i in range(len(link_list)):
+        this_item = link_list[i]
+        print('Scraping text for documents #: ', i)
+        this_date, this_doc = get_one_doc(host, this_item)
+        doc_list.append(this_doc)
+        date_list.append(this_date)
+    return doc_list, date_list
 
 def get_one_doc(host, this_url):
     '''
@@ -225,15 +147,17 @@ def get_one_doc(host, this_url):
     temp_url = 'https://' + host + this_url
     response = requests.get(temp_url)
     sp = BeautifulSoup(response.text)
-    article = sp.find('div', class_='col-xs-12 col-sm-8 col-md-8')
+    this_date = sp.find('p', class_='article__time')
+    this_date = this_date.text
 
+    article = sp.find('div', class_='col-xs-12 col-sm-8 col-md-8')
     doc = []
     for p in article.find_all('p'):
         doc.append(p.text)
 
     return_doc = ''.join(doc)
 
-    return return_doc
+    return this_date, return_doc
 
 if __name__ == '__main__':
 
@@ -248,29 +172,27 @@ if __name__ == '__main__':
     import os
 
     host = 'www.federalreserve.gov'
-    prefix = 'monetarypolicy/fomccalendars.htm'
-    #suffix = '-speeches.htm'
-    #start_year = 2006
-    #end_year = 2019
+    prefix = '/monetarypolicy/fomccalendars.htm'
 
-    # create list of web site containing annual speech links
-    #annual_htm_list =create_url_list(start_year, end_year, prefix, suffix)
-    #print('Below is the annual_htm_list')
-    #print(annual_htm_list)
+    link_list =find_all_press_releases(host, prefix, print_test=False)
 
-    # create dataframe containing speech information (not yet the text)
-    df = create_speech_df(host, annual_htm_list)
-    #print(df.info())
-    df['date'] = pd.to_datetime(df['date'])
-    df['date'] = df['date'].dt.strftime('%m/%d/%Y')
+    doc_list, date_list = retrieve_docs(host, link_list)
 
-    # scrape the text from every speech in the dataframe
-    df = retrieve_docs(host, df)
-    print(df.info())
+    df = create_speech_df(date_list, doc_list)
+
+    # # create dataframe containing speech information (not yet the text)
+    # df = create_speech_df(host, annual_htm_list)
+    # #print(df.info())
+    # df['date'] = pd.to_datetime(df['date'])
+    # df['date'] = df['date'].dt.strftime('%m/%d/%Y')
+
+    # # scrape the text from every speech in the dataframe
+    # df = retrieve_docs(host, df)
+    # print(df.info())
 
     # saving the df to a pickle file
     #os.chdir("..")
-    pickle_out = open('mvp_fed_speeches', 'wb')
+    pickle_out = open('mvp_fed_press_rel', 'wb')
     pickle.dump(df, pickle_out)
     pickle_out.close()
 
