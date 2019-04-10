@@ -166,9 +166,9 @@ if __name__ == '__main__':
 
     #creating a two lagged ed_last variables ed_last_1m ed_last_l2
     temp_ed_last = X_fwds['ed_last'].copy()
-    temp_shift = pd.concat(temp_ed_last, temp_ed_last.shift(), temp_ed_last.shift(2), axis = 1)
-    X_fwds['ed_last_l1'] = temp.iloc[:,1]
-    X_fwds['ed_last_l2'] = temp.iloc[:,2]
+    temp_shift = pd.concat([temp_ed_last, temp_ed_last.shift(), temp_ed_last.shift(2)], axis = 1)
+    X_fwds['ed_last_l1'] = temp_shift.iloc[:,1]
+    X_fwds['ed_last_l2'] = temp_shift.iloc[:,2]
     X_fwds = X_fwds.dropna()
 
     # Creating training, cross-validation and test datasets
@@ -227,7 +227,7 @@ if __name__ == '__main__':
                     'forecast': np.copy(forecast_matrix)}
     model_list.append(model_inputs)
 
-''' ARMIAX model '''
+    ''' ARMIAX model '''
     this_name = 'Normal ARIMAX(1,0,1)'
     model_type = pf.ARIMAX
     model_class = 'ARIMAX'
@@ -423,9 +423,8 @@ if __name__ == '__main__':
     dist_2 = X - model_list[2]['forecast']
     dist_3 = X - model_list[3]['forecast']
     dist_4 = X - model_list[4]['forecast']
-    dist_5 = X - model_list[5]['forecast']
 
-    delta_list = [dist_0, dist_1, dist_2, dist_3, dist_4, dist_5]
+    delta_list = [dist_0, dist_1, dist_2, dist_3, dist_4]
 
     pickle_out = open('../data/Tuesday_distrib', 'wb')
     pickle.dump(delta_list, pickle_out)
