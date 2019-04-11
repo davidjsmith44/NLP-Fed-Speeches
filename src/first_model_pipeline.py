@@ -32,14 +32,6 @@ def plot_3_pcs(comps, shocks, filename=None):
     axs[1,1].set_facecolor("whitesmoke")
     axs[1,1].set_title("Shocks due to 2nd Component")
 
-    axs[2,0].plot(comps[2, :], color='k')
-    axs[2,0].grid()
-    axs[2,0].set_facecolor("whitesmoke")
-    axs[2,0].set_title("Third Principal Component Vector")
-    axs[2,1].plot(shocks[:,2], color='g')
-    axs[2,1].grid()
-    axs[2,1].set_facecolor("whitesmoke")
-    axs[2,1].set_title("Shocks due to 3rd Component")
 
     fig.suptitle("Principal Components of the US Treasury Yield Curve", fontsize = 30, color = 'k')
     fig.show()
