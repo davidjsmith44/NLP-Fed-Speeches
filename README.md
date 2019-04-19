@@ -16,6 +16,8 @@ I wanted to investigate whether Federal Reserve Board Members’ speeches and th
 
 As further motivation for this study, the chart below shows the 5-year and 10-year Treasury yield during 2013. Going into 2013 the Federal Reserve had been increasing the supply of money in the economy by purchasing bonds in the open market. This was done to keep long term interest rates low in an effort to spur business investment. The vertical line represents the date Chairman Bernanke made a comment that the Federal Reserve would ‘taper’ (slow down) the rate of bond purchases in the future. The bond markets reacted to this comment by selling bonds causing interest rates to increase over the following months. This reaction by the bond market is referred to as the ‘taper tantrum’. What is interesting to note is that the Federal Reserve did not change their policy at the time of the speech, but the market’s expectations changed. 
 
+![taper_tantrum](https://github.com/davidjsmith44/Capstone/blob/master/src/taper_tantrum.png)
+
 
 ![forward_changes over time](https://github.com/davidjsmith44/Capstone/blob/master/data/forward_changes_over_time.png)
 
