@@ -18,6 +18,13 @@ As further motivation for this study, the chart below shows the 5-year and 10-ye
 
 ![taper_tantrum](https://github.com/davidjsmith44/Capstone/blob/master/src/taper_tantrum.png)
 
+To measure the impact of the Federal Reserve speeches, the following steps were taken
+1.	Historical speeches and press releases were web scrapped from the Federal Reserve. 
+2.	The speech text was vectorized using natural language processing (NLP) tools using python’s sklearn and nltk packages.
+3.	The Euclidean distance between the vectorized text of the latest speech and the most recent speech was calculated and turned into a time series.
+4.	Historical daily U.S. Treasury yields were collected from Quandl’s API, transformed into forward rates and first differenced to create a stationary time series.
+5.	Autoregressive moving average models were fit to each forward rate series to determine if the time series of Federal Reserve speech distance could explain some of the noise of the stationary forward rates.
+
 
 ![forward_changes over time](https://github.com/davidjsmith44/Capstone/blob/master/data/forward_changes_over_time.png)
 
