@@ -36,7 +36,9 @@ Speeches and FOMC press releases were scraped from the Federal Reserve web site 
 
 The texts were run through a text processing pipeline where capitalization, punctuation and stop words were removed and the term frequency inverse document frequency was calculated.  The Euclidean Distance between the most recent speech/press release from the last speech or press release was calculated and turned into a time series (zeros for dates where no public speeches were made and the distance metric for the most recent speech on dates where there was a speech)
 
-Below shows the bag of words for one FOMC press release
+Below shows the bag of words from the last FOMC press release
+
+![last_fed_speech](https://github.com/davidjsmith44/Capstone/blob/master/src/last_fed_speech.png)
 
 
 ![forward_changes over time](https://github.com/davidjsmith44/Capstone/blob/master/data/forward_changes_over_time.png)
