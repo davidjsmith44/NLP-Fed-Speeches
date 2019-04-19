@@ -43,6 +43,10 @@ The first differenced forward rates used over my cross validation set (for the s
 
 ![forward_changes over time](https://github.com/davidjsmith44/Capstone/blob/master/data/forward_changes_over_time.png)
 
+MODEL RESULTS
+	-no statistical significance for the coefficients on fed speeches or the FOMC press releases.
+	-very little forecasted impact due to a new speech
+	-largest impact is at the 3 year forward rate, which makes sense since the Fed is slow to make policy changes that the market does not expect over in a period of slow growth.
 
 Initial predictions
 ![forward_changes over time](https://github.com/davidjsmith44/Capstone/blob/master/src/inital_pred_plot.png)
