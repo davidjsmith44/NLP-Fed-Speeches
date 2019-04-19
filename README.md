@@ -25,6 +25,19 @@ To measure the impact of the Federal Reserve speeches, the following steps were 
 4.	Historical daily U.S. Treasury yields were collected from Quandl’s API, transformed into forward rates and first differenced to create a stationary time series.
 5.	Autoregressive moving average models were fit to each forward rate series to determine if the time series of Federal Reserve speech distance could explain some of the noise of the stationary forward rates.
 
+Historical Speeches
+I used two different sources for Federal Reserve.
+Historical Speeches
+The Federal Reserve web site contains the text of every public speech by the Board of Governor going back to 2006. There are 483 unique dates when speeches took place and there are several dates where multiple speeches took place. The topics of these speeches varies based on the audience and could range from a commencement address to the opening remarks at an insurance conference. 
+
+In 2014 the Federal Reserve began publishing a press release after every FOMC meeting at the close of business on that date. There are about 10 meetings held every year creating a corpus of 43 press releases. These press releases are very measured and do not vary much from one  date to another, often containing only one or two words that are different. In this corpus, there are over 200,000 words but less than 700 unique words are used. Given how carefully constructed these texts are, I was hopeful that quantifying how different these texts were would provide a metric to forecast changes in interest rates.
+
+Speeches and FOMC press releases were scraped from the Federal Reserve web site using python and BeautifulSoup.
+
+The texts were run through a text processing pipeline where capitalization, punctuation and stop words were removed and the term frequency inverse document frequency was calculated.  The Euclidean Distance between the most recent speech/press release from the last speech or press release was calculated and turned into a time series (zeros for dates where no public speeches were made and the distance metric for the most recent speech on dates where there was a speech)
+
+Below shows the bag of words for one FOMC press release
+
 
 ![forward_changes over time](https://github.com/davidjsmith44/Capstone/blob/master/data/forward_changes_over_time.png)
 
