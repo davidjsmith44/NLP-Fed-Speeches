@@ -1,4 +1,4 @@
-# Economic Impact of Federal Reserve Speecxhes
+# Economic Impact of Federal Reserve Speeches
 
 
 The Federal Reserve is responsible for setting short term interest rates and controlling the money supply in an attempt to keep inflation and unemployment within an acceptable range. Speeches and press releases by Federal Reserve Board members may provide insights into the Fed's future actions and have an impact on current interest rates.
