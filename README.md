@@ -43,6 +43,20 @@ The first differenced forward rates used over my cross validation set (for the s
 
 ![forward_changes over time](https://github.com/davidjsmith44/Capstone/blob/master/data/forward_changes_over_time.png)
 
+ARIMA model for each interest rate
+	∆^𝐷 𝑟_𝑡=∑_(𝑖=1)^𝑝▒∅_𝑖  ∆^𝐷 𝑟_(𝑡−1)+ ∑_(𝑗=1)^𝑞▒𝜃_𝑗  𝜖_(𝑡−1)+𝜖_𝑡
+
+ARIMAX model for each forward rate
+	∆^𝐷 𝑟_𝑡=∑_(𝑖=1)^𝑝▒∅_𝑖  ∆^𝐷 𝑟_(𝑡−1)+ ∑_(𝑗=1)^𝑞▒𝜃_𝑗  𝜖_(𝑡−1)+ ∑_(𝑚=1)^𝑀▒𝛽_𝑚  𝑋_(𝑚,𝑡−1)+𝜖_𝑡
+	where 	p is the number of autoregressive lags,
+		d is the degree of differencing
+		q is the number of moving average lags
+		X is the distance metric for the new speech/minutes release
+
+ARIMA model on principal components of all interest rates
+
+ARIMAX model on principal components of all interest rates
+
 MODEL RESULTS
 	-no statistical significance for the coefficients on fed speeches or the FOMC press releases.
 	-very little forecasted impact due to a new speech
