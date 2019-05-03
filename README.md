@@ -74,6 +74,3 @@ CONCLUSIONS/FURTHER STUDY
 •	Include metrics for interest rate expectations that can be observed daily
 •	Do differences in Fed speeches impact the volatility of interest rates
 
-
-May be a class imbalance issue. There are few FOMC press releases (43 used here) and not every FOMC meeting results in minutes that change expectations. During the time period studied for FOMC press releases, the Federal Reserve maintained a consistent policy of reducing bond prices and 
-We may not have captured a time period when the actions of the Fed had a meaningful impact on expectations.
