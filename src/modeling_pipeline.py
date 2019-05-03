@@ -143,7 +143,8 @@ if __name__ == '__main__':
 
     #df_FX = pickle.load( open( "data/FX_data", "rb" ) )
     # Loading up the federal reserve speech data
-    fed_metrics = pickle.load( open( "../data/mvp_cosine_sim", "rb" ) )
+    #fed_metrics = pickle.load( open( "../data/mvp_cosine_sim", "rb" ) )
+    fed_metrics = pickle.load( open( "../data/policy_speech_dist", "rb" ) )
     cos_last = fed_metrics['cos_last']
     cos_avg_n = fed_metrics['cos_avg_n']
     ed_last = fed_metrics['ed_last']
@@ -383,7 +384,7 @@ if __name__ == '__main__':
     # The type reload(fc)
     # reload(fc)
     # below saves the output from these three models to a pickle file
-    pickle_out = open('../data/Tuesday_model_results', 'wb')
+    pickle_out = open('../data/May_3_model_results', 'wb')
     pickle.dump(model_list, pickle_out)
     pickle_out.close()
 
@@ -400,6 +401,7 @@ if __name__ == '__main__':
 
     delta_list = [dist_0, dist_1, dist_2, dist_3, dist_4, dist_5]
 
-    pickle_out = open('../data/Tuesday_distrib', 'wb')
+    #pickle_out = open('../data/Tuesday_distrib', 'wb')
+    pickle_out = open('../data/May_3_distrib', 'wb')
     pickle.dump(delta_list, pickle_out)
     pickle_out.close()

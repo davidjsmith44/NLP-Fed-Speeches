@@ -51,7 +51,9 @@ def implement_ftidf_model(df):
                           norm = 'l2',
                           use_idf = True,
                           smooth_idf=True,
-                          sublinear_tf = False)
+                          sublinear_tf = False,
+                          ngram_range = (1,3))
+
     tfidf_vectorized = tfidvect.fit_transform(doc_list).toarray()
     tfidvect.fit_transform(doc_list)
     # can this just be tfidvect.fit_transform(doc_list) without the assignment??

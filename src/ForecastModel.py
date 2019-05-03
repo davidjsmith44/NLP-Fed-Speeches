@@ -238,10 +238,6 @@ class ForecastModel(object):
                     this_prediction += this_impact
                 return this_prediction
 
-
-
-
-
     def create_oos_data(self, X):
         '''This method build the data needed for a one period forecast and alters the
             the speech data to be zeros (so one period forecast with no speech data'''

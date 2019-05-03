@@ -51,7 +51,8 @@ def implement_ftidf_model(df):
                           norm = 'l2',
                           use_idf = True,
                           smooth_idf=True,
-                          sublinear_tf = False)
+                          sublinear_tf = False,
+                          ngram_range = (1,3))
     tfidf_vectorized = tfidvect.fit_transform(doc_list).toarray()
     tfidvect.fit_transform(doc_list)
     # can this just be tfidvect.fit_transform(doc_list) without the assignment??
@@ -168,7 +169,7 @@ if __name__ == '__main__':
     # Importing all of the Fed Speeches
     import pickle
     #df = pickle.load( open( "../data/all_fed_speeches", "rb" ) )
-    df = pickle.load( open( "data/mvp_fed_speeches", "rb" ) )
+    df = pickle.load( open( "../data/mvp_fed_speeches", "rb" ) )
     df.info()
 
     # Filtering speeches that only contain the words 'Policy', 'Outlook' and 'Balance Sheet'
@@ -182,6 +183,7 @@ if __name__ == '__main__':
     all_index = index_bs | index_pol | index_out
     list_index = list(all_index)
     df = df.loc[list_index]
+    df['date']=pd.to_datetime(df['date'])
     df.sort_values(by=['date'], ascending = False, inplace = True)
     df.reset_index(drop=True, inplace=True)
 
@@ -220,7 +222,7 @@ if __name__ == '__main__':
                     'ed_avg_n': ts_ed_avg_n,
                     'dates': ts_dates}
     #pickle_out = open('data/ts_cosine_sim', 'wb')
-    pickle_out = open('../data/final_speech_dist', 'wb')
+    pickle_out = open('../data/policy_speech_dist', 'wb')
     #pickle.dump([ts_cos_last, ts_cos_avg_n, ts_dates], pickle_out)
     pickle.dump(speech_dict, pickle_out)
     pickle_out.close()

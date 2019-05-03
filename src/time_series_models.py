@@ -13,7 +13,7 @@ ARIMAX
 
 
 '''
-import pyflux as pf`
+import pyflux as pf
 model_list = []
 if __name__ == '__main__':
     ''' ARIMA model'''
