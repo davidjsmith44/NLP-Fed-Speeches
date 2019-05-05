@@ -46,6 +46,7 @@ The first differenced forward rates used over my cross validation set (for the s
 ARIMA model for each interest rate
 
 ![equation](https://latex.codecogs.com/gif.latex?%5CDelta%5ED%20y_t%20%3D%20%5CSigma_%7Bi%3D1%7D%5E%7Bp%7D%20%5Cphi_i%20%5CDelta%5ED%20y_%7Bt-1%7D%20&plus;%20%5CSigma_%7Bj%3D1%7D%5E%7Bq%7D%20%5Ctheta_j%20%5Cepsilon_%7Bt-j%7D%20&plus;%20%5Cepsilon_t)
+
 ![equation](https://latex.codecogs.com/gif.latex?%5Cepsilon_t%20%5Cthicksim%20N%280%2C%20%5Csigma%5E2%29)
 
 	where 	p is the number of autoregressive lags
