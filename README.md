@@ -86,4 +86,16 @@ I are measuring differences in what the Fed is saying, but not differences betwe
 •	Include metrics for interest rate expectations that can be observed daily
 •	Do differences in Fed speeches impact the volatility of interest rates
 
+## NOTES
+---
+ This research was completed as part of Galvanize's Data Science Immersive that I completed from January 2019 through April 2019. The 'Capstone' is a three week research project that completes the data science immersive program. Each student is required to formulate their own research idea, gather the data (by any means necessary) and present their own research using the tools learned in Galvanize's program.
+
+ Given the short time horizon, the code in this repository is a bit of a zoo and includes many files that should be deleted. There are a few scripts that I am proud of and are better indications of what I have learned.
+
+1. 'src/ForecastModel.py'
+Contains an object oriented forecast model class that can perform ARIMA, ARIMAX models on a time series or the principal components of a yield curve. The fit() method estimates the model and the predict_one() method creates a one day forecast of interest rates.
+2. 'src/fed_speech_scraping.py'
+Pulls the text of every Federal Reserve speech from 2006 through 2019 using ppython and BeautifulSoup. The results are returned in a dataframe.
+3. 'src/NLP_pipeline_2.py'
+Contains the NLP pipeline that creates the term frequency inverse document frequency matrix and compares a new speech's euclidian distance to the last n-speeches.
 
