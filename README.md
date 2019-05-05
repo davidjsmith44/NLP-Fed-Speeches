@@ -45,10 +45,9 @@ ARIMA model for each interest rate
 	∆^𝐷 𝑟_𝑡=∑_(𝑖=1)^𝑝▒∅_𝑖  ∆^𝐷 𝑟_(𝑡−1)+ ∑_(𝑗=1)^𝑞▒𝜃_𝑗  𝜖_(𝑡−1)+𝜖_𝑡
 
 ARIMAX model for each forward rate
-
-	{equation} 
-	x = y+2
-	{equation}
+	\Delta^D y_t = \Sigma_{i=1}^{p} \phi_i \Delta^D y_t-1 + \Sigma_{j=1}^{q} \theta_j \epsilon_t-j + \Sigma_{m=1}^{M} \beta_m X_{m,t} + \epsilon_t
+	\epsilon_t \sim N(0,\sigma^2)
+	
 	∆^𝐷 𝑟_𝑡=∑_(𝑖=1)^𝑝▒∅_𝑖  ∆^𝐷 𝑟_(𝑡−1)+ ∑_(𝑗=1)^𝑞▒𝜃_𝑗  𝜖_(𝑡−1)+ ∑_(𝑚=1)^𝑀▒𝛽_𝑚  𝑋_(𝑚,𝑡−1)+𝜖_𝑡
 	where 	p is the number of autoregressive lags,
 		d is the degree of differencing
