@@ -41,11 +41,14 @@ The first differenced forward rates used over my cross validation set (for the s
 
 ![forward_changes over time](https://github.com/davidjsmith44/Capstone/blob/master/data/forward_changes_over_time.png)
 
+## Time Series Models Used
+- - -
 ARIMA model for each interest rate
 
 ![equation](https://latex.codecogs.com/gif.latex?%5CDelta%5ED%20y_t%20%3D%20%5CSigma_%7Bi%3D1%7D%5E%7Bp%7D%20%5Cphi_i%20%5CDelta%5ED%20y_%7Bt-1%7D%20&plus;%20%5CSigma_%7Bj%3D1%7D%5E%7Bq%7D%20%5Ctheta_j%20%5Cepsilon_%7Bt-j%7D%20&plus;%20%5Cepsilon_t)
 ![equation](https://latex.codecogs.com/gif.latex?%5Cepsilon_t%20%5Cthicksim%20N%280%2C%20%5Csigma%5E2%29)
-	where 	p is the number of autoregressive lags,
+
+	where 	p is the number of autoregressive lags
 		d is the degree of differencing
 		q is the number of moving average lags
 
@@ -54,7 +57,8 @@ ARIMAX model for each forward rate
 ![equation](https://latex.codecogs.com/gif.latex?%5CDelta%5ED%20y_t%20%3D%20%5CSigma_%7Bi%3D1%7D%5E%7Bp%7D%20%5Cphi_i%20%5CDelta%5ED%20y_%7Bt-1%7D%20&plus;%20%5CSigma_%7Bj%3D1%7D%5E%7Bq%7D%20%5Ctheta_j%20%5Cepsilon_t-j%20&plus;%20%5CSigma_%7Bm%3D1%7D%5E%7BM%7D%20%5Cbeta_m%20X_%7Bm%2Ct%7D%20&plus;%20%5Cepsilon_t)
 
 ![equation](https://latex.codecogs.com/gif.latex?%5Cepsilon_t%20%5Cthicksim%20N%280%2C%20%5Csigma%5E2%29)
-	where 	p is the number of autoregressive lags,
+
+	where 	p is the number of autoregressive lags
 		d is the degree of differencing
 		q is the number of moving average lags
 		X is the distance metric for the new speech/minutes release
