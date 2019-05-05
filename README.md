@@ -46,6 +46,9 @@ ARIMA model for each interest rate
 
 ARIMAX model for each forward rate
 	<math>\Delta^D y_t = \Sigma_{i=1}^{p} \phi_i \Delta^D y_t-1 + \Sigma_{j=1}^{q} \theta_j \epsilon_t-j + \Sigma_{m=1}^{M} \beta_m X_{m,t} + \epsilon_t </math>
+	
+![equation](https://latex.codecogs.com/gif.latex?%5CDelta%5ED%20y_t%20%3D%20%5CSigma_%7Bi%3D1%7D%5E%7Bp%7D%20%5Cphi_i%20%5CDelta%5ED%20y_%7Bt-1%7D%20&plus;%20%5CSigma_%7Bj%3D1%7D%5E%7Bq%7D%20%5Ctheta_j%20%5Cepsilon_t-j%20&plus;%20%5CSigma_%7Bm%3D1%7D%5E%7BM%7D%20%5Cbeta_m%20X_%7Bm%2Ct%7D%20&plus;%20%5Cepsilon_t)
+
 	<math>\epsilon_t \sim N(0,\sigma^2)</math>
 	
 	∆^𝐷 𝑟_𝑡=∑_(𝑖=1)^𝑝▒∅_𝑖  ∆^𝐷 𝑟_(𝑡−1)+ ∑_(𝑗=1)^𝑞▒𝜃_𝑗  𝜖_(𝑡−1)+ ∑_(𝑚=1)^𝑀▒𝛽_𝑚  𝑋_(𝑚,𝑡−1)+𝜖_𝑡
