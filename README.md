@@ -68,19 +68,19 @@ ARIMA model on principal components of all interest rates
 
 ARIMAX model on principal components of all interest rates
 
-MODEL RESULTS
-	-no statistical significance for the coefficients on fed speeches or the FOMC press releases.
-	-very little forecasted impact due to a new speech
-	-largest impact is at the 3 year forward rate, which makes sense since the Fed is slow to make policy changes that the market does not expect over in a period of slow growth.
-
-Initial predictions
+## MODEL RESULTS
+---
 ![forward_changes over time](https://github.com/davidjsmith44/Capstone/blob/master/src/inital_pred_plot.png)
 
-CONCLUSIONS/FURTHER STUDY
-•	My NLP vectorization considered each word as a unique token. I had hoped that this would allow the model to pick up new words in press releases and the determine explanatory power of these words. This approach may not be appropriate to pick up the nuances of what a new word means. If an FOMC speech contains the word ‘moderate’ it could mean very different things for the implications of monetary policy. For example, ‘moderate growth’ would imply that the Fed is not seeing a reason to change policy because growth is not excessive and will not have an impact on inflation. “Moderate purchases” however would signal that the Fed is planning on reducing the rate of growth of the money supply. I intend to change my NLP pipeline to incorporate n-grams of words as tokens to better identify the difference between groups of words.
+While the ARIMAX models created non-zero foreacasts for the changes in interest rates, the magnitude of these forecasts was limited to around +/- 1 basis point, which is considerably smaller than the standard deviation of the changes in interest rates. Further, the coefficients for the Federal Reserve Speech distances were all statistically insignificant.
 
-•	I are measuring differences in what the Fed is saying, but not differences between what the Fed says and what the market expects after seeing the same data. Further research into other latent variables that could possibly explain the market’s expecations before a FOMC meeting to determine how different the press release is versus these expectations.
-•	Potential paths for future study
+The ARIMAX model for the 3 year forward rate demonstrated the largest forecasts, which makes sense since the Fed is slow to make policy changes that the market does not expect over in a period of slow growth.
+
+## CONCLUSIONS/FURTHER STUDY
+--- 
+My initial NLP vectorization considered each word as a unique token. I had hoped that this would allow the model to pick up new words in press releases and the determine explanatory power of these words. If an FOMC speech contains the word ‘moderate’ it could mean very different things for the implications of monetary policy. For example, ‘moderate growth’ would imply that the Fed is not seeing a reason to change policy because growth is not excessive and will not have an impact on inflation. “Moderate purchases” however would signal that the Fed is planning on reducing the rate of growth of the money supply. I then went back and recreated my NLP pipeline to incorporate n-grams of up to three words as tokens to better identify the difference between groups of words. This did not change the results. Considering phrases longer than 3 words or possibly sentences may allow for the model to pick up larger differences in the meaining of the press releases.
+
+I are measuring differences in what the Fed is saying, but not differences between what the Fed says and what the market expects after seeing the same data. Further research into other latent variables that could possibly explain the market’s expecations before a FOMC meeting to determine how different the press release is versus these expectations.
 •	Include a metric for inflation expectations that can be observed every day
 •	Include metrics for interest rate expectations that can be observed daily
 •	Do differences in Fed speeches impact the volatility of interest rates
