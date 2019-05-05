@@ -74,7 +74,7 @@ ARIMAX model on principal components of all interest rates
 
 While the ARIMAX models created non-zero foreacasts for the changes in interest rates, the magnitude of these forecasts was limited to around +/- 1 basis point, which is considerably smaller than the standard deviation of the changes in interest rates. Further, the coefficients for the Federal Reserve Speech distances were all statistically insignificant.
 
-The ARIMAX model for the 3 year forward rate demonstrated the largest forecasts, which makes sense since the Fed is slow to make policy changes that the market does not expect over in a period of slow growth.
+The ARIMAX model for the 2 and 3 year forward rate demonstrated the largest forecasted changes in interest rate. This  makes sense since the Fed is slow to make policy changes that the market does not expect over in a period of slow growth. However, the magnitude of these forecasts still only explains a small portion of the noise in the interest rate time series.
 
 ## CONCLUSIONS/FURTHER STUDY
 --- 
