@@ -3,18 +3,15 @@
 
 The Federal Reserve is responsible for setting short term interest rates and controlling the money supply in an attempt to keep inflation and unemployment within an acceptable range. Speeches and press releases by Federal Reserve Board members may provide insights into the Fed's future actions and have an impact on current interest rates.
 
-
-The Federal Reserve is responsible for setting short term interest rates and controlling the money supply in an attempt to keep inflation and unemployment within an acceptable range. Speeches and press releases by Federal Reserve Board members may provide insights into the Fed's future actions and may have an impact on changes in current interest rates.
-
 Before the financial crisis of 2009, the Federal Reserve was very secretive about monetary policy. The minutes of Federal Open Market Committee (FOMC) meetings, the committee responsible for setting short term interest rates and changing the supply of money in the economy, were not released until weeks after the meetings took place. News organizations would speculate about the outcome of the FOMC meetings based on the size of Alan Greenspan’s briefcase, the then Federal Reserve Board Chairman. If the leather briefcase was packed with papers and appeared full, the media concluded the FOMC had made a change to economic policy. If the briefcase was thin, there would be no changes to the money supply.
 
 The language of the speeches made by FOMC members was also very vague and hard to decipher. Chairman Greenspan’s warned that equity markets were exhibiting ‘irrational exuberance’, rather than simply state that they were overvalued. Careers were made deciphering ‘Fed Speek’ language into expectations of policy outcomes.
 
 As a result of the financial crisis and under the leadership of Chairman Ben Bernanke and then Chairman Janet Yellen, the Federal Reserve began to be more transparent with the actions taken by the FOMC both in terms of the language used to discuss the economy and the timing of information being released. FOMC committee meeting minutes are now released at the end of the day the meetings take place. 
 
-I wanted to investigate whether Federal Reserve Board Members’ speeches and the FOMC press releases had an impact on the future direction of interest rates.
+I wanted to investigate whether Federal Reserve Board Members’ speeches and the FOMC press releases had an impact on the future direction of interest rates. More specifically, if a new press release was 'different' than a previous press release, does this cause a change in the current yeild curve. Natural Language Processing (NLP) techniques are used to convert the language used by the Fed into vectors and the Euclidian distance from the most recent language relative to recent content released by the Fed was calculated and turned into a time series.
 
-As further motivation for this study, the chart below shows the 5-year and 10-year Treasury yield during 2013. Going into 2013 the Federal Reserve had been increasing the supply of money in the economy by purchasing bonds in the open market. This was done to keep long term interest rates low in an effort to spur business investment. The vertical line represents the date Chairman Bernanke made a comment that the Federal Reserve would ‘taper’ (slow down) the rate of bond purchases in the future. The bond markets reacted to this comment by selling bonds causing interest rates to increase over the following months. This reaction by the bond market is referred to as the ‘taper tantrum’. What is interesting to note is that the Federal Reserve did not change their policy at the time of the speech, but the market’s expectations changed. 
+As further motivation for this study, the chart below shows the 5-year and 10-year Treasury yield during 2013. Going into 2013 the Federal Reserve had been increasing the supply of money in the economy by purchasing bonds in the open market. This was done to keep long term interest rates low in an effort to spur business investment. The vertical line represents the date Chairman Bernanke made a comment that the Federal Reserve would ‘taper’ (slow down) the rate of bond purchases in the future. The bond markets reacted to this comment by selling bonds which caused interest rates to increase over the following months. This reaction by the bond market is referred to as the ‘taper tantrum’. What is interesting to note is that the Federal Reserve did not change their policy at the time of the speech, but the market’s expectations changed. 
 ![taper_tantrum](https://github.com/davidjsmith44/Capstone/blob/master/src/taper_tantrum.png)
 
 To measure the impact of the Federal Reserve speeches, the following steps were taken
@@ -22,7 +19,7 @@ To measure the impact of the Federal Reserve speeches, the following steps were 
 2.	The speech text was vectorized using natural language processing (NLP) tools using python’s sklearn and nltk packages.
 3.	The Euclidean distance between the vectorized text of the latest speech and the most recent speech was calculated and turned into a time series.
 4.	Historical daily U.S. Treasury yields were collected from Quandl’s API, transformed into forward rates and first differenced to create a stationary time series.
-5.	Autoregressive moving average models were fit to each forward rate series to determine if the time series of Federal Reserve speech distance could explain some of the noise of the stationary forward rates.
+5.	Autoregressive Integrated Moving Average models with Exogenous Input (ARIMAX) were fit to each forward rate series to determine if the time series of Federal Reserve speech distance could explain some of the noise of the stationary forward rates.
 
 Historical Speeches
 I used two different sources for Federal Reserve.
@@ -47,6 +44,10 @@ ARIMA model for each interest rate
 	∆^𝐷 𝑟_𝑡=∑_(𝑖=1)^𝑝▒∅_𝑖  ∆^𝐷 𝑟_(𝑡−1)+ ∑_(𝑗=1)^𝑞▒𝜃_𝑗  𝜖_(𝑡−1)+𝜖_𝑡
 
 ARIMAX model for each forward rate
+
+	{equation} 
+	x = y+2
+	{equation}
 	∆^𝐷 𝑟_𝑡=∑_(𝑖=1)^𝑝▒∅_𝑖  ∆^𝐷 𝑟_(𝑡−1)+ ∑_(𝑗=1)^𝑞▒𝜃_𝑗  𝜖_(𝑡−1)+ ∑_(𝑚=1)^𝑀▒𝛽_𝑚  𝑋_(𝑚,𝑡−1)+𝜖_𝑡
 	where 	p is the number of autoregressive lags,
 		d is the degree of differencing
